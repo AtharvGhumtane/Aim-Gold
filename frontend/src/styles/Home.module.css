@@ -1,0 +1,58 @@
+.container {
+  font-family: "Poppins", sans-serif;
+  padding: 2rem;
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
+.mainContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4rem;
+  height: 80vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.mainContainer_left {
+  flex: 0.4;
+  min-width: 300px;
+}
+
+.mainContainer_left h1 {
+  font-size: 3rem;
+  color: #222;
+  margin-bottom: 1rem;
+}
+
+.mainContainer_left p {
+  font-size: 1.2rem;
+  color: #444;
+  line-height: 1.6;
+}
+
+.buttonJoin {
+  margin-top: 2rem;
+  background-color: #ca86ca;
+  color: white;
+  padding: 0.8rem 1.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s ease;
+  width: fit-content;
+  display: inline-block;
+  font-weight: bold;
+}
+
+.buttonJoin:hover {
+  background-color: #c34fc5;
+}
+
+.mainContainer_right {
+  flex: 0.6;
+  min-width: 300px;
+  text-align: center;
+}
+

@@ -1,0 +1,131 @@
+.cardContainer {
+    height:80vh;
+    display: flex;
+    border-radius: 10px;
+    overflow: hidden;
+    width: 80vw;
+    background: rgb(231, 195, 226);
+    box-shadow: 10px 10px 15px rgb(red, green, blue);
+}
+
+.container{
+    display: flex;
+    justify-content: center;
+    height: 90hvh;
+    align-items: center;
+    background: snow;
+}
+
+.cardContainer_Left{
+    flex: 0.6;
+    padding: 2rem;
+    text-align: center;
+}
+
+.cardContainer_Right{
+    flex:0.4;
+    background: rgb(244, 219, 243);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.cardleft_heading{
+    font-weight: bold;
+    font-size: 2.6rem;
+
+}
+
+
+.inputField {
+  padding: 0.8rem 1.3rem;
+  width: 100%;
+  max-width: 400px;
+  border: 1.5px solid #ccc;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  background-color: #fff;
+  color: #333;
+}
+
+.inputField:focus {
+  border-color: #0070f3;
+  box-shadow: 0 0 0 4px rgba(0, 112, 243, 0.1);
+}
+
+.inputRow{
+    display: flex;
+    gap: 1.2rem;
+}
+
+.inputContainers{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-top: 1.3rem;
+    max-width: 400px;
+    margin: 0 auto;
+    gap: 1.5rem;
+}
+
+.buttonWithOutline {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #000000;
+  background-color: transparent;
+  border: 2px solid #000000;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.buttonWithOutline:hover {
+  background-color: #de74be;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.buttonWithOutline:active {
+  transform: scale(0.98);
+}
+
+
+.cardContainer_Right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background: #d78dd7;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.toggleText {
+  font-size: 16px;
+  margin-bottom: 1rem;
+  color: #000000;
+}
+
+.toggleButton {
+  padding: 0.6rem 1.2rem;
+  background-color: #be87b8;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+.toggleButton:hover {
+  background-color: #c93ddc;
+}
+

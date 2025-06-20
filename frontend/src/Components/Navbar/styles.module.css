@@ -1,0 +1,145 @@
+/* Main container - ensure it doesn't clip content */
+.container {
+  position: relative;
+  width: 100%;
+  /* Remove any overflow: hidden if present */
+}
+
+/* Navbar styling */
+.navBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 100; /* Ensure navbar is above other content */
+}
+
+.navLeft {
+  display: flex;
+  gap: 1rem;
+}
+
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.navIcon {
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.navIcon:hover {
+  background-color: #f0f0f0;
+}
+
+.profileContainer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative; /* Important for dropdown positioning */
+}
+
+.greeting {
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.profileIcon {
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.profileIcon:hover {
+  background-color: #f0f0f0;
+}
+
+/* Settings container - key fixes here */
+.settingsContainer {
+  position: relative; /* This is crucial */
+}
+
+.settingsIcon {
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.settingsIcon:hover {
+  background-color: #f0f0f0;
+}
+
+/* Settings dropdown card - main fixes */
+.settingsCard {
+  position: absolute;
+  top: 100%; /* Position below the settings icon */
+  right: 0; /* Align to right edge */
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000; /* High z-index to appear above everything */
+  margin-top: 0.5rem; /* Small gap from the icon */
+  
+  /* Prevent the card from being cut off */
+  overflow: visible;
+}
+
+.settingsOption {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.settingsOption:last-child {
+  border-bottom: none;
+}
+
+.settingsOption:hover {
+  background-color: #f8f9fa;
+}
+
+.settingsOption:first-child {
+  border-radius: 8px 8px 0 0;
+}
+
+.settingsOption:last-child {
+  border-radius: 0 0 8px 8px;
+}
+
+.settingsOption i {
+  width: 16px;
+  color: #666;
+}
+
+.settingsOption span {
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 500;
+}
+
+/* Logout option styling */
+.settingsOption:last-child:hover {
+  background-color: #fee;
+  color: #d32f2f;
+}
+
+.settingsOption:last-child:hover i,
+.settingsOption:last-child:hover span {
+  color: #d32f2f;
+}
