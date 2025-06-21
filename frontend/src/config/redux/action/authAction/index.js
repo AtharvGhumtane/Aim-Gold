@@ -120,7 +120,7 @@ export const getMyConnectionRequests = createAsyncThunk(
           token: user.token
         }
       });
-      return thunkAPI.fulfillWithValue(response.data) // FIXED: Changed to connections
+      return thunkAPI.fulfillWithValue(response.data.connections || response.data ) // FIXED: Changed to connections
     }catch(error){
        return thunkAPI.rejectWithValue(error.response.data)
     }
@@ -138,6 +138,7 @@ export const AcceptConnection = createAsyncThunk(
      })
      
      // ✅ OPTIONAL: Refresh the connection requests after accepting
+     thunkAPI.dispatch(getConnectionRequest({token:user.token}))
      thunkAPI.dispatch(getMyConnectionRequests({token: user.token}))
      
      return thunkAPI.fulfillWithValue(response.data);

@@ -1,33 +1,62 @@
-.userCard{
-    display: flex;
-    width: 100%;
-    gap: 1.2rem;
-    padding: 1.3rem;
-    align-items: center;
-    box-shadow: 10px 10px 10px 0px rgba(0, 0, 0, 0.1);
+.userCard {
+  background: linear-gradient(135deg, #ffffff, #f0f4f8);
+  border-left: 6px solid #0066ff;
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.5rem;
+  transition: transform 0.25s ease;
 }
 
-.profilePicture > img{
-    width: 6.5rem;
-    border-radius: 50%;
+.userCard:hover {
+  transform: translateY(-5px);
+  background: linear-gradient(135deg, #e6f0ff, #ffffff);
 }
 
-.myConnections{
-    display: flex;
-    width: 100%;
-    justify-content: space-around;
-    padding-bottom: 1.5rem;
-    cursor: pointer;
+.profilePicture > img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid #0099ff;
+  object-fit: cover;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
 }
 
+.userInfo h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #001f3f;
+  margin: 0;
+}
 
-.connectedButton{
-  padding-inline: 0.8rem;
-  padding-block: 0.3rem;
-  background: rgba(219, 212, 70, 0.905);
-  outline: none;
+.userInfo p {
+  font-size: 0.95rem;
+  color: #5a5a5a;
+  margin: 0;
+}
+
+.connectedButton {
+  background: #00cc66;
+  color: white;
+  font-weight: bold;
+  padding: 0.5rem 1.2rem;
   border: none;
-  color: rgb(0, 0, 0);
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 204, 102, 0.3);
+  transition: background 0.2s ease-in-out;
+}
+
+.connectedButton:hover {
+  background: #00994d;
+}
+
+.connectedStatus {
+  background: #e6fff5;
+  color: #007b5e;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.4rem 1rem;
+  border-radius: 14px;
+  text-transform: uppercase;
 }

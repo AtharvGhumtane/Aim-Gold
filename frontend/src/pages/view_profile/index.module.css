@@ -1,126 +1,114 @@
 .container {
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #f9f9f9;
-  min-height: 100vh;
+  padding: 2.5rem;
+  background: #f2f6fc;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-/* Banner / backdrop */
 .backDropContainer {
   width: 100%;
   max-width: 1000px;
-  height: 40vh;
-  border-radius: 1rem;
+  height: 42vh;
+  border-radius: 20px;
   overflow: hidden;
-  position: relative;
-  background-color: #e0e0e0;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  background-image: url("https://images.pexels.com/photos/6532378/pexels-photo-6532378.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260");
+  background-image: url("https://images.pexels.com/photos/6532378/pexels-photo-6532378.jpeg");
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  margin-bottom: 3rem;
 }
 
-/* Profile picture (overlapping) */
 .backDrop {
-  width: 120px;
-  height: 120px;
-  object-fit: cover;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
+  object-fit: cover;
   position: absolute;
-  bottom: 1px; /* Push outside of backdrop */
+  bottom: 1px;
   left: 2rem;
-  border: 4px solid white;
-  background-color: white;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease;
+  border: 5px solid white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
-.backDrop:hover {
-  transform: scale(1.05);
-}
-
-/* Profile details section */
 .profileContainer__details {
-  width: 100%;
-  max-width: 1000px;
-  margin-top: 80px; /* Push down to clear floating image */
   background: white;
-  padding: 1rem 2rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  padding: 2rem 2.5rem;
+  max-width: 1000px;
+  margin-top: 4rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
 }
 
-.profileContainer__details h2 {
-  margin: 0;
+.connectBtn {
+  background: linear-gradient(to right, #0052cc, #007bff);
+  color: #ffffff;
+  font-weight: 700;
+  padding: 0.5rem 1.2rem;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 3px 14px rgba(0, 123, 255, 0.3);
+  transition: all 0.25s ease-in-out;
+  cursor: pointer;
 }
 
-.profileContainer__details p {
-  margin: 0;
-  color: gray;
+.connectBtn:hover {
+  background: linear-gradient(to right, #0041aa, #0066e6);
 }
 
+.connectedButton {
+  background: #00b894;
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1.1rem;
+  border-radius: 10px;
+  border: none;
+  cursor: not-allowed;
+}
 
-
-.card{
+.card {
   display: flex;
   align-items: center;
-  gap: 1.4rem;
+  gap: 1rem;
 }
 
-
-.card__profileContainer{
-  display: flex;
-
+.card__profileContainer {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
-.card__profileContainer{
-  width: 3.4rem;
-  height: auto;
-  height: 3.4rem;
+.card__profileContainer img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
-.connectBtn{
-  padding-inline: 0.8rem;
-  padding-block: 0.3rem;
-  background: rgba(219, 212, 70, 0.905);
-  outline: none;
-  border: none;
-  color: rgb(0, 0, 0);
-  border-radius: 10px;
-  cursor: pointer;
+.postCard {
+  background-color: #ffffff;
+  border-radius: 14px;
+  padding: 1.2rem;
+  margin-top: 1.4rem;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.07);
 }
 
-.connectedButton{
-  padding-inline: 0.8rem;
-  padding-block: 0.3rem;
-  background: rgba(219, 212, 70, 0.905);
-  outline: none;
-  border: none;
-  color: rgb(0, 0, 0);
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-
-
-
-.workHistoryContainer{
+.workHistoryContainer {
   display: flex;
-  gap: 1.4rem;
-  padding-top: 1.4rem;
-  width: 100%;
   flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 1rem;
 }
 
+.workHistoryCard {
+  background: #ffffff;
+  padding: 1rem 1.6rem;
+  border-radius: 14px;
+  box-shadow: 0 3px 20px rgba(0, 0, 0, 0.06);
+  flex: 1 1 240px;
+  transition: transform 0.2s ease-in-out;
+}
 
-.workHistoryCard{
-  min-width: fit-content;
-  padding-inline: 2.5rem;
-  padding-block: 1rem;
-  border-radius: 10px;
-  box-shadow: 10px 10px 15px rgb(173,173,173);
+.workHistoryCard:hover {
+  transform: translateY(-5px);
 }
