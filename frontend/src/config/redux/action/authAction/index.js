@@ -120,7 +120,7 @@ export const getMyConnectionRequests = createAsyncThunk(
           token: user.token
         }
       });
-      return thunkAPI.fulfillWithValue(response.data.connections) // FIXED: Changed to connections
+      return thunkAPI.fulfillWithValue(response.data) // FIXED: Changed to connections
     }catch(error){
        return thunkAPI.rejectWithValue(error.response.data)
     }
@@ -133,9 +133,13 @@ export const AcceptConnection = createAsyncThunk(
     try{
      const response = await clientServer.post("/user/accept_connection_request", {
       token: user.token,
-      requestId: user.connection_id, // FIXED: Changed to requestId to match backend
+      requestId: user.requestId, // ✅ FIXED: Changed from user.connectionId to user.requestId
       action_type: user.action
      })
+     
+     // ✅ OPTIONAL: Refresh the connection requests after accepting
+     thunkAPI.dispatch(getMyConnectionRequests({token: user.token}))
+     
      return thunkAPI.fulfillWithValue(response.data);
     }catch(error){
      return thunkAPI.rejectWithValue(error.response.data)

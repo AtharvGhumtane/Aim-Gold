@@ -271,6 +271,7 @@ export const sendConnectionRequest = async (req, res) => {
 }
 
 // Fixed getMyConnectionRequests function - corrected variable name
+// ✅ Get connection requests I SENT (outgoing)
 export const getMyConnectionRequests = async (req, res) => {
     const { token } = req.query;
 
@@ -282,7 +283,7 @@ export const getMyConnectionRequests = async (req, res) => {
         const connections = await ConnectionRequest.find({ userId: user._id })
         .populate('connectionId', 'name email username profilePicture');
 
-        return res.json({connections}); // ✅ Fixed: now matches variable name
+        return res.json({connections});
 
     }catch(error) {
         console.error("Get my connection requests error:", error);
@@ -290,9 +291,8 @@ export const getMyConnectionRequests = async (req, res) => {
     }
 }
 
-
+// ✅ Get connection requests I RECEIVED (incoming) - for accepting/rejecting
 export const whatAreMyConnections = async (req, res) => {
-
     const { token } = req.query;
 
     try{
@@ -300,34 +300,38 @@ export const whatAreMyConnections = async (req, res) => {
 
         if(!user) return res.status(404).json({ message: "User not found" });
 
+        // ✅ Find requests where current user is the connectionId (receiver)
         const connections = await ConnectionRequest.find({ connectionId: user._id })
         .populate('userId', 'name email username profilePicture');
 
         return res.json(connections);
 
     }catch(error) {
+        console.error("What are my connections error:", error);
         return res.status(500).json({message:error.message});
     }    
 }
 
 
 export const acceptConnectionRequest = async (req, res) => {
-    const { token, requestId , action_type } = req.body;
+    const { token, requestId, action_type } = req.body;
 
     try{
-
-
         const user = await User.findOne({ token }); 
         
         if(!user) return res.status(404).json({ message: "User not found" });
 
-        const connection = await ConnectionRequest.findOne({ _id: requestId });
+        // ✅ FIXED: Find connection request by ID and verify user is the receiver
+        const connection = await ConnectionRequest.findOne({ 
+            _id: requestId,
+            connectionId: user._id // ✅ Ensure current user is the receiver of the request
+        });
 
         if(!connection) return res.status(404).json({ message: "Connection request not found" });
 
         if(action_type === "accept") {
             connection.status_accepted = true;
-        }else{
+        } else {
             connection.status_accepted = false;
         }
 
@@ -336,10 +340,10 @@ export const acceptConnectionRequest = async (req, res) => {
         return res.json({ message: "Connection request updated successfully" });
         
     }catch(error) {
+        console.error("Accept connection error:", error);
         return res.status(500).json({ message: error.message });
     }
-
-}    
+}  
 
 
 // In your user.controller.js - commentPost function:
