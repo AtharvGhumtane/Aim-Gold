@@ -1,82 +1,380 @@
+/* Enhanced View Profile Page Styles - Sports Theme */
+
 .container {
-  padding: 2.5rem;
-  background: #f2f6fc;
-  font-family: 'Segoe UI', sans-serif;
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
 }
 
+/* Hero Section with Profile */
 .backDropContainer {
   width: 100%;
-  max-width: 1000px;
-  height: 42vh;
-  border-radius: 20px;
+  max-width: 1200px;
+  height: 50vh;
+  border-radius: 24px;
   overflow: hidden;
   background-image: url("https://images.pexels.com/photos/6532378/pexels-photo-6532378.jpeg");
   background-size: cover;
   background-position: center;
   position: relative;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-  margin-bottom: 3rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  margin: 0 auto 3rem auto;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.backDropContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.3) 0%,
+    rgba(118, 75, 162, 0.3) 100%
+  );
+  backdrop-filter: blur(2px);
 }
 
 .backDrop {
-  width: 140px;
-  height: 140px;
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
   object-fit: cover;
   position: absolute;
-  bottom: 1px;
-  left: 2rem;
-  border: 5px solid white;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  bottom: -40px;
+  left: 3rem;
+  border: 6px solid white;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  transition: transform 0.3s ease;
 }
 
+.backDrop:hover {
+  transform: scale(1.05);
+}
+
+/* Sport History Section */
+.workHistory {
+  max-width: 1200px;
+  margin: 0 auto 3rem auto;
+}
+
+.workHistory h1 {
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.workHistory h1::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(135deg, #ffd93d, #ff6b6b);
+  border-radius: 2px;
+}
+
+.workHistoryContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.workHistoryCard {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.workHistoryCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.workHistoryCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.workHistoryCard p {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.workHistoryCard p:first-child {
+  font-weight: 700;
+  color: #334155;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.workHistoryCard p:first-child::before {
+  content: '🏆';
+  font-size: 1.5rem;
+}
+
+.workHistoryCard p:nth-child(2) {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.workHistoryCard p:nth-child(2)::before {
+  content: '⚽';
+  margin-right: 0.5rem;
+}
+
+.workHistoryCard p:last-child {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.workHistoryCard p:last-child::before {
+  content: '📅';
+  margin-right: 0.5rem;
+}
+
+/* Main Profile Details */
 .profileContainer__details {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem 2.5rem;
-  max-width: 1000px;
-  margin-top: 4rem;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 3rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.profileContainer__details::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(135deg, #667eea, #764ba2, #ffd93d);
+}
+
+/* Profile Header */
+.profileHeader {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.profileInfo {
+  flex: 0.7;
+  padding-left: 2rem;
+}
+
+.profileNameSection {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.profileNameSection h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #334155;
+  margin: 0;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.profileNameSection p {
+  font-size: 1.2rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Action Buttons */
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .connectBtn {
-  background: linear-gradient(to right, #0052cc, #007bff);
-  color: #ffffff;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
   font-weight: 700;
-  padding: 0.5rem 1.2rem;
+  padding: 1rem 2rem;
   border: none;
-  border-radius: 10px;
-  box-shadow: 0 3px 14px rgba(0, 123, 255, 0.3);
-  transition: all 0.25s ease-in-out;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
   cursor: pointer;
+  font-size: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.connectBtn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.connectBtn:hover::before {
+  left: 100%;
 }
 
 .connectBtn:hover {
-  background: linear-gradient(to right, #0041aa, #0066e6);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
 }
 
 .connectedButton {
-  background: #00b894;
+  background: linear-gradient(135deg, #00b894, #00a085);
   color: white;
   font-weight: 600;
-  padding: 0.5rem 1.1rem;
-  border-radius: 10px;
+  padding: 1rem 2rem;
+  border-radius: 16px;
   border: none;
   cursor: not-allowed;
+  opacity: 0.8;
+  font-size: 1rem;
+}
+
+.downloadBtn {
+  width: 48px;
+  height: 48px;
+  background: rgba(102, 126, 234, 0.1);
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #667eea;
+}
+
+.downloadBtn:hover {
+  background: #667eea;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+/* Bio Section */
+.bioSection {
+  background: rgba(102, 126, 234, 0.05);
+  padding: 2rem;
+  border-radius: 16px;
+  border-left: 4px solid #667eea;
+  margin-bottom: 2rem;
+}
+
+.bioSection p {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #475569;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Recent Activity Section */
+.activitySection {
+  flex: 0.3;
+}
+
+.activitySection h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.activitySection h3::before {
+  content: '📱';
+  font-size: 1.2rem;
+}
+
+.postCard {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.postCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.postCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .card {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
 }
 
 .card__profileContainer {
   width: 3.5rem;
   height: 3.5rem;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 .card__profileContainer img {
@@ -85,30 +383,148 @@
   object-fit: cover;
 }
 
-.postCard {
-  background-color: #ffffff;
-  border-radius: 14px;
-  padding: 1.2rem;
-  margin-top: 1.4rem;
-  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.07);
+.card p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #475569;
+  flex: 1;
 }
 
-.workHistoryContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  margin-top: 1rem;
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: #64748b;
 }
 
-.workHistoryCard {
-  background: #ffffff;
-  padding: 1rem 1.6rem;
-  border-radius: 14px;
-  box-shadow: 0 3px 20px rgba(0, 0, 0, 0.06);
-  flex: 1 1 240px;
-  transition: transform 0.2s ease-in-out;
+.emptyState i {
+  font-size: 3rem;
+  color: #cbd5e1;
+  margin-bottom: 1rem;
 }
 
-.workHistoryCard:hover {
-  transform: translateY(-5px);
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .container {
+    padding: 1.5rem;
+  }
+
+  .backDropContainer {
+    height: 40vh;
+  }
+
+  .backDrop {
+    width: 140px;
+    height: 140px;
+    left: 2rem;
+    bottom: -30px;
+  }
+
+  .profileContainer__details {
+    padding: 2rem;
+  }
+
+  .profileHeader {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .profileInfo {
+    padding-left: 0;
+  }
+
+  .profileNameSection h2 {
+    font-size: 2rem;
+  }
+
+  .workHistoryContainer {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .backDropContainer {
+    height: 35vh;
+    border-radius: 16px;
+  }
+
+  .backDrop {
+    width: 120px;
+    height: 120px;
+    left: 1.5rem;
+    bottom: -25px;
+  }
+
+  .profileContainer__details {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .profileNameSection {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .profileNameSection h2 {
+    font-size: 1.8rem;
+  }
+
+  .actionButtons {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .connectBtn {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .workHistory h1 {
+    font-size: 1.5rem;
+  }
+
+  .workHistoryContainer {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .workHistoryCard {
+    padding: 1.5rem;
+  }
+
+  .activitySection h3 {
+    font-size: 1.2rem;
+  }
+
+  .postCard {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profileNameSection h2 {
+    font-size: 1.5rem;
+  }
+
+  .profileNameSection p {
+    font-size: 1rem;
+  }
+
+  .backDrop {
+    width: 100px;
+    height: 100px;
+    left: 1rem;
+    bottom: -20px;
+  }
+
+  .workHistoryCard p:first-child {
+    font-size: 1rem;
+  }
 }

@@ -1,104 +1,531 @@
-/* src/layout/DashboardLayout/index.module.css */
+/* Sports Dashboard Layout Styles - FIXED VERSION */
 
-/* Root container paddings & full height */
+.layoutWrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
 .container {
   padding: 1rem;
-  height: 100vh;
+  min-height: 100vh;
   box-sizing: border-box;
-  background-color: #f5f7fa;
 }
 
-/* Main flex wrapper */
 .homeContainer {
   display: flex;
-  height: 100%;
-  border-radius: 8px;
+  height: calc(100vh - 2rem); /* Fixed height instead of min-height */
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  position: relative; /* Add position relative for absolute positioning of comments */
 }
 
-/* Sidebar (20%) */
-.homeContainer > div:nth-child(1) {
-  flex: 0.2;
-  background-color: #ffffff;
-  border-right: 1px solid #e0e0e0;
-}
-
-/* Feed (60%) */
-.homeContainer > div:nth-child(2) {
-  flex: 0.6;
-  background-color: #fafafa;
-  padding: 1rem;
-  overflow-y: auto;
-}
-
-/* Extra (20%) */
-.homeContainer > div:nth-child(3) {
-  flex: 0.2;
-  background-color: #ffffff;
-  border-left: 1px solid #e0e0e0;
-  padding: 1rem;
-  overflow-y: auto;
-}
-
-/* Sidebar layout */
+/* Enhanced Sidebar (25%) - FIXED: Remove overflow-y auto from parent */
 .homeContainer_leftBar {
+  flex: 0.25;
+  background: rgba(255, 255, 255, 0.98);
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  padding: 1rem;
-  gap: 1rem;
+  /* Removed overflow-y: auto; */
 }
 
-/* Individual sidebar items */
+.sidebarContent {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  height: 100%;
+  overflow-y: auto; /* Move overflow to content container */
+}
+
+/* Quick Actions Section */
+.quickActions h3,
+.sportsCategories h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quickActions h3::before {
+  content: '';
+  width: 4px;
+  height: 16px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 2px;
+}
+
 .sideBarOption {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem;
-  border-radius: 4px;
+  padding: 0.875rem;
+  border-radius: 12px;
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
+  transition: all 0.3s ease;
+  margin-bottom: 0.5rem;
+  border: 2px solid transparent;
 }
 
 .sideBarOption:hover {
-  background-color: #f0f4f8;
-  color: #1a73e8;
+  background: rgba(102, 126, 234, 0.1);
+  border-color: rgba(102, 126, 234, 0.2);
+  transform: translateX(4px);
 }
 
-/* Icon sizing */
-.sideBarOption > svg,
-.sideBarOption > .fa-icon {
-  width: 1.4rem;
-  height: 1.4rem;
+.sideBarOption.active {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+  border-color: #667eea;
+  transform: translateX(4px);
+}
+
+.iconWrapper {
+  width: 40px;
+  height: 40px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #667eea;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.sideBarOption:hover .iconWrapper,
+.sideBarOption.active .iconWrapper {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  transform: scale(1.1);
+}
+
+.optionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.optionContent span {
+  font-weight: 600;
+  color: #334155;
+  font-size: 0.9rem;
+}
+
+.optionContent small {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+/* Sports Categories */
+.sportsCategories {
+  margin-top: 1rem;
+}
+
+.sportsCategories h3::before {
+  content: '⚽';
+  font-size: 1rem;
+}
+
+.sportsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sportItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sportItem:hover {
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.sportItem i {
+  width: 24px;
+  color: #667eea;
+  font-size: 1rem;
+}
+
+.sportItem span {
+  font-size: 0.85rem;
+  color: #475569;
+  font-weight: 500;
+}
+
+/* Feed Container (50%) - FIXED: Proper scrolling */
+.homeContainer_feedContainer {
+  flex: 0.5;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden; /* Prevent parent from scrolling */
+}
+
+/* Add a scrollable content wrapper inside feed container */
+.feedContent {
+  padding: 1.5rem;
+  overflow-y: auto;
+  height: 100%;
+  flex: 1;
+}
+
+/* Right Sidebar (25%) - FIXED: Remove overflow-y auto from parent */
+.homeContainer_extraContainer {
+  flex: 0.25;
+  background: rgba(255, 255, 255, 0.98);
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  /* Removed overflow-y: auto; */
+}
+
+/* Add scrollable content wrapper for right sidebar */
+.extraContent {
+  padding: 1.5rem;
+  overflow-y: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Section Headers */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.sectionHeader i {
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+.sectionHeader h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+}
+
+/* Trending Athletes */
+.trendingSection {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.extraContainer__profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  margin-bottom: 0.75rem;
+}
+
+.extraContainer__profile:hover {
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.profileAvatar {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.profileInfo {
+  flex: 1;
+}
+
+.profileName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.profileSport {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.followBtn {
+  width: 28px;
+  height: 28px;
+  background: rgba(102, 126, 234, 0.1);
+  border: none;
+  border-radius: 50%;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.followBtn:hover {
+  background: #667eea;
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Upcoming Events */
+.upcomingEvents {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.eventItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.eventItem:hover {
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.eventDate {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
   flex-shrink: 0;
-  color: #555;
-  transition: color 0.2s;
 }
 
-.sideBarOption:hover > svg,
-.sideBarOption:hover > .fa-icon {
-  color: #1a73e8;
+.day {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
-/* Scrollbar styling for feed & extra containers */
-.homeContainer_feedContainer::-webkit-scrollbar,
-.homeContainer_extraContainer::-webkit-scrollbar {
+.month {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.eventDetails p {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.eventDetails span {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* Sports Stats */
+.sportsStats {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.statItem:hover {
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.statIcon {
+  width: 40px;
+  height: 40px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #667eea;
+  font-size: 1rem;
+}
+
+.statInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.statNumber {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* FIXED: Scrollbar Styling for new content wrappers */
+.sidebarContent::-webkit-scrollbar,
+.feedContent::-webkit-scrollbar,
+.extraContent::-webkit-scrollbar {
   width: 6px;
 }
 
-.homeContainer_feedContainer::-webkit-scrollbar-thumb,
-.homeContainer_extraContainer::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
+.sidebarContent::-webkit-scrollbar-track,
+.feedContent::-webkit-scrollbar-track,
+.extraContent::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 3px;
 }
 
-/* Responsive adjustments */
+.sidebarContent::-webkit-scrollbar-thumb,
+.feedContent::-webkit-scrollbar-thumb,
+.extraContent::-webkit-scrollbar-thumb {
+  background: rgba(102, 126, 234, 0.3);
+  border-radius: 3px;
+}
+
+.sidebarContent::-webkit-scrollbar-thumb:hover,
+.feedContent::-webkit-scrollbar-thumb:hover,
+.extraContent::-webkit-scrollbar-thumb:hover {
+  background: rgba(102, 126, 234, 0.5);
+}
+
+/* ADDED: Post container for proper comment positioning */
+.postContainer {
+  position: relative;
+  margin-bottom: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ADDED: Comment section positioning */
+.commentSection {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  max-height: 400px;
+  overflow-y: auto;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .homeContainer_leftBar {
+    flex: 0.3;
+  }
+  
+  .homeContainer_feedContainer {
+    flex: 0.45;
+  }
+  
+  .homeContainer_extraContainer {
+    flex: 0.25;
+  }
+}
+
 @media (max-width: 768px) {
+  .container {
+    padding: 0.5rem;
+  }
+  
   .homeContainer {
     flex-direction: column;
+    border-radius: 12px;
+    height: auto;
+    min-height: calc(100vh - 1rem);
   }
-  .homeContainer > div {
+  
+  .homeContainer_leftBar,
+  .homeContainer_feedContainer,
+  .homeContainer_extraContainer {
     flex: 1 1 auto !important;
     border: none !important;
+  }
+  
+  .homeContainer_leftBar {
+    order: 3;
+    max-height: 300px;
+  }
+  
+  .homeContainer_feedContainer {
+    order: 1;
+    min-height: 60vh;
+  }
+  
+  .homeContainer_extraContainer {
+    order: 2;
+    max-height: 400px;
+  }
+  
+  .sidebarContent,
+  .extraContent {
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  .feedContent {
+    padding: 1rem;
+  }
+  
+  .optionContent small {
+    display: none;
+  }
+  
+  .sportsList {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .sportItem {
+    flex: 1;
+    min-width: 120px;
   }
 }

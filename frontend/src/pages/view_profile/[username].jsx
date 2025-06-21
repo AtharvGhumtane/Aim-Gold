@@ -99,20 +99,35 @@ export default function ViewProfilePage({userProfile}) {
     }, 1000);
   };
 
+  const handleDownloadResume = async () => {
+    try {
+      const response = await clientServer.get(`/user/download_resume?id=${userProfile.userId._id}`);
+      window.open(`${BASE_URL}/uploads/${response.data.message}`, "_blank");
+    } catch (error) {
+      console.error("Failed to download resume:", error);
+    }
+  };
+
   if (!userProfile) {
     return (
       <UserLayout>
         <DashboardLayout>
-          <div>Profile not found</div>
+          <div className={styles.container}>
+            <div className={styles.emptyState}>
+              <i className="fa-solid fa-user-slash"></i>
+              <h2>Profile not found</h2>
+              <p>The user profile you're looking for doesn't exist or has been removed.</p>
+            </div>
+          </div>
         </DashboardLayout>
       </UserLayout>
     );
   }
 
   const getConnectionButtonText = () => {
-    if (connectionStatus.isConnected) return "Connected";
-    if (connectionStatus.isPending) return "Pending";
-    return "Connect";
+    if (connectionStatus.isConnected) return "✓ Connected";
+    if (connectionStatus.isPending) return "⏳ Pending";
+    return "🤝 Connect";
   };
 
   const getConnectionButtonClass = () => {
@@ -126,40 +141,48 @@ export default function ViewProfilePage({userProfile}) {
     <UserLayout>
        <DashboardLayout>
           <div className={styles.container}>
+              {/* Hero Section with Profile Picture */}
               <div className={styles.backDropContainer}>
-                <img className={styles.backDrop} src={
-                  !userProfile.userId.profilePicture || userProfile.userId?.profilePicture === 'default.jpg'
-                    ? `${BASE_URL}/uploads/default.jpg`
-                    : `${BASE_URL}/uploads/${userProfile.userId.profilePicture}`
-                } alt="backdrop" />
+                <img 
+                  className={styles.backDrop} 
+                  src={
+                    !userProfile.userId.profilePicture || userProfile.userId?.profilePicture === 'default.jpg'
+                      ? `${BASE_URL}/uploads/default.jpg`
+                      : `${BASE_URL}/uploads/${userProfile.userId.profilePicture}`
+                  } 
+                  alt={`${userProfile.userId.name}'s profile`} 
+                />
               </div>
               
-              <div className='workHistory'>
-                 <h1>Sport History</h1>
-                 <div className={styles.workHistoryContainer}>
-                    {userProfile.pastWork.map((work,index) => {
-                      return(
+              {/* Sport History Section */}
+              {userProfile.pastWork && userProfile.pastWork.length > 0 && (
+                <div className={styles.workHistory}>
+                   <h1>🏆 Sport History</h1>
+                   <div className={styles.workHistoryContainer}>
+                      {userProfile.pastWork.map((work, index) => (
                         <div key={index} className={styles.workHistoryCard}>
-                           <p style={{fontWeight:"bold",display:"flex",alignItems:"center",gap:"0.8rem"}}>
-                             Club :- {work.company}
+                           <p>
+                             Club: {work.company}
                            </p>
-                           <p>Position :- {work.position}</p>
-                           <p>Playing since :- {work.years}</p>
+                           <p>Position: {work.position}</p>
+                           <p>Playing since: {work.years}</p>
                         </div>
-                      )
-                    })}
-                 </div>
-              </div>
+                      ))}
+                   </div>
+                </div>
+              )}
 
+              {/* Main Profile Details */}
               <div className={styles.profileContainer__details}> 
-                <div style={{display:"flex",gap:"0.7rem"}}>
-                  <div style={{flex:"0.8"}}>
-                    <div style={{display:"flex",width:"fit-content",alignItems:"center",gap:"1.2rem"}}>
+                <div className={styles.profileHeader}>
+                  {/* Left Side - Profile Info */}
+                  <div className={styles.profileInfo}>
+                    <div className={styles.profileNameSection}>
                       <h2>{userProfile.userId.name}</h2>
-                      <p style={{color:"grey"}}>@{userProfile.userId.username}</p>
+                      <p>@{userProfile.userId.username}</p>
                     </div>
 
-                    <div style={{display:"flex" , alignItems:"center" , gap:"1.2em"}}>
+                    <div className={styles.actionButtons}>
                       <button
                         onClick={connectionStatus.canConnect ? handleConnect : undefined}
                         className={getConnectionButtonClass()}
@@ -169,24 +192,17 @@ export default function ViewProfilePage({userProfile}) {
                       </button>
                       
                       <div
-                        onClick={async () => {
-                          try {
-                            const response = await clientServer.get(`/user/download_resume?id=${userProfile.userId._id}`);
-                            window.open(`${BASE_URL}/uploads/${response.data.message}`, "_blank");
-                          } catch (error) {
-                            console.error("Failed to download resume:", error);
-                          }
-                        }}
-                        style={{ cursor: "pointer" }}
+                        onClick={handleDownloadResume}
+                        className={styles.downloadBtn}
+                        title="Download Resume"
                       >
                         <svg
-                          style={{ width: "1.2em" }}
+                          style={{ width: "1.5em", height: "1.5em" }}
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
                           strokeWidth="1.5"
                           stroke="currentColor"
-                          className="size-6"
                         >
                           <path
                             strokeLinecap="round"
@@ -197,28 +213,52 @@ export default function ViewProfilePage({userProfile}) {
                       </div>
                     </div>
 
-                    <div>
-                      <p>{userProfile.bio}</p>
-                    </div>
+                    {/* Bio Section */}
+                    {userProfile.bio && (
+                      <div className={styles.bioSection}>
+                        <p>"{userProfile.bio}"</p>
+                      </div>
+                    )}
                   </div>
                   
-                  <div style={{flex:"0.2"}}>
+                  {/* Right Side - Recent Activity */}
+                  <div className={styles.activitySection}>
                     <h3>Recent Activity</h3>
-                    {userPosts.map((post) => {
-                      return (
+                    {userPosts && userPosts.length > 0 ? (
+                      userPosts.slice(0, 3).map((post) => (
                         <div key={post._id} className={styles.postCard}>
                           <div className={styles.card}>
                             <div className={styles.card__profileContainer}>
-                              {post.media !== "" ? 
-                                <img src={`${BASE_URL}/uploads/${post.media}`} alt={`Post by ${post.userId.username}`} />
-                                : <div style={{width:"3.4rem",height:"3.4rem"}}></div>
-                              }
+                              {post.media && post.media !== "" ? (
+                                <img 
+                                  src={`${BASE_URL}/uploads/${post.media}`} 
+                                  alt={`Post by ${post.userId.username}`} 
+                                />
+                              ) : (
+                                <div style={{
+                                  width: "100%", 
+                                  height: "100%", 
+                                  background: "linear-gradient(135deg, #667eea, #764ba2)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  color: "white",
+                                  fontSize: "1.2rem"
+                                }}>
+                                  📝
+                                </div>
+                              )}
                             </div>
                             <p>{post.body}</p>
                           </div>
                         </div>
-                      )
-                    })}
+                      ))
+                    ) : (
+                      <div className={styles.emptyState}>
+                        <i className="fa-solid fa-newspaper"></i>
+                        <p>No recent posts</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
