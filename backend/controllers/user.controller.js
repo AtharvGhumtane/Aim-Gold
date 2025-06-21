@@ -232,7 +232,7 @@ export const downloadProfile = async (req, res) => {
     
     let outputPath = await convertUserDataTOPDF(userProfile);
 
-    return res.json({"Message": outputPath});
+    return res.json({"message": outputPath});
 
 }
 
