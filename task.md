@@ -36,4 +36,4 @@
 - [x] Implement Accept/Reject buttons for `connection_request` inside Navbar Notification dropdown
 - [x] Map icons for `"like"` and `"team_message"` notifications in Navbar
 - [x] Update and execute automated integration tests `test_all_features.js` to verify all Phase 2 fixes
-- [ ] Add checks to hide action buttons on accepted notification messages in `Navbar/index.jsx`
+- [x] Add checks to hide action buttons on accepted notification messages in `Navbar/index.jsx`
