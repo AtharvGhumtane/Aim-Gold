@@ -149,10 +149,58 @@ export default function NavbarComponent() {
                     {notifications.length > 0 ? (
                       notifications.slice(0, 5).map((noti) => (
                         <div key={noti._id} className={`${styles.notificationItem} ${!noti.isRead ? styles.unreadItem : ''}`}>
-                          <i className={noti.type === 'connection_request' ? 'fa-solid fa-user-plus' : 'fa-solid fa-comment'}></i>
-                          <div>
+                          <i className={
+                            noti.type === 'connection_request' ? 'fa-solid fa-user-plus' :
+                            noti.type === 'team_invite' ? 'fa-solid fa-users-gear' :
+                            'fa-solid fa-comment'
+                          }></i>
+                          <div className={styles.notificationContentBody}>
                             <p>{noti.message}</p>
                             <span>{new Date(noti.createdAt).toLocaleDateString()}</span>
+                            {noti.type === 'team_invite' && !noti.isRead && (
+                              <div className={styles.inviteActions}>
+                                <button 
+                                  className={styles.acceptInviteBtn}
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      const token = localStorage.getItem("token");
+                                      await clientServer.post('/teams/accept_invite', {
+                                        token,
+                                        teamId: noti.relatedId,
+                                        notificationId: noti._id
+                                      });
+                                      fetchNotifications();
+                                      if (router.pathname === '/teams') {
+                                        router.replace(router.asPath);
+                                      }
+                                    } catch (err) {
+                                      console.error("Failed to accept team invite:", err);
+                                    }
+                                  }}
+                                >
+                                  Accept
+                                </button>
+                                <button 
+                                  className={styles.declineInviteBtn}
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      const token = localStorage.getItem("token");
+                                      await clientServer.post('/user/notifications/mark_read', {
+                                        token,
+                                        notificationId: noti._id
+                                      });
+                                      fetchNotifications();
+                                    } catch (err) {
+                                      console.error("Failed to decline invite:", err);
+                                    }
+                                  }}
+                                >
+                                  Decline
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))

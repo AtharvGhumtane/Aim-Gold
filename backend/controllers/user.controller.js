@@ -61,9 +61,11 @@ export const register = async (req, res) => {
 
         if(!name || !email || !password || !username)  return res.status(400).json({message: "Please fill all the fields"}); 
 
-        const user = await User.findOne({ email });
+        const userByEmail = await User.findOne({ email });
+        if(userByEmail) return res.status(400).json({message: "Email already registered"});
 
-        if(user) return res.status(400).json({message: "User already exists"});
+        const userByUsername = await User.findOne({ username });
+        if(userByUsername) return res.status(400).json({message: "Username already taken"});
         
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -85,6 +87,7 @@ export const register = async (req, res) => {
 
         return res.status(201).json({message: "User registered successfully"});
     }catch(error){
+        console.error("Register error:", error);
         return res.status(500).json({
             message: "Internal server error",
         });
@@ -97,15 +100,19 @@ export const login = async (req, res) => {
 
         if(!email || !password) return res.status(400).json({message: "Please fill all the fields"});
 
+        // Allow logging in with either email or username
         const user = await User.findOne({
-            email
+            $or: [
+                { email: email },
+                { username: email }
+            ]
         });
 
         if(!user) return res.status(404).json({message: "User not found"});
 
         const isMatch = await bcrypt.compare(password, user.password);
 
-        if(!isMatch) return res.status(400).json({message:"Invalid Crentials"})
+        if(!isMatch) return res.status(400).json({message:"Invalid Credentials"})
 
         const token = crypto.randomBytes(32).toString("hex");
 

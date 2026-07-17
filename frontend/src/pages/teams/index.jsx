@@ -2,16 +2,27 @@ import React, { useEffect, useState } from 'react';
 import UserLayout from '@/layout/UserLayout';
 import DashboardLayout from '@/layout/DashboardLayout';
 import { clientServer, BASE_URL } from '@/config';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { getAllUsers } from '@/config/redux/action/authAction';
 import styles from './styles.module.css';
 
 export default function TeamsPage() {
   const authState = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  // Live Chat States
+  const [activeChatTeamId, setActiveChatTeamId] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+
+  // Invitations selected user map (teamId -> targetUserId)
+  const [inviteUserIdMap, setInviteUserIdMap] = useState({});
 
   // Create Team Form States
   const [teamForm, setTeamForm] = useState({
@@ -33,9 +44,35 @@ export default function TeamsPage() {
     }
   };
 
+  const fetchChatMessages = async (teamId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await clientServer.get(`/teams/${teamId}/messages?token=${token}`);
+      setChatMessages(res.data.messages || []);
+    } catch (err) {
+      console.error("Failed to fetch chat messages:", err);
+    }
+  };
+
   useEffect(() => {
     fetchTeams();
+    dispatch(getAllUsers());
   }, []);
+
+  useEffect(() => {
+    let interval;
+    if (activeChatTeamId) {
+      fetchChatMessages(activeChatTeamId);
+      interval = setInterval(() => {
+        fetchChatMessages(activeChatTeamId);
+      }, 3000); // Poll every 3 seconds for live chat
+    } else {
+      setChatMessages([]);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [activeChatTeamId]);
 
   const handleFormChange = (e) => {
     setTeamForm({
@@ -96,9 +133,50 @@ export default function TeamsPage() {
       const token = localStorage.getItem("token");
       await clientServer.post('/teams/leave', { token, teamId });
       showFeedback("Left team successfully!", "success");
+      if (activeChatTeamId === teamId) {
+        setActiveChatTeamId(null);
+      }
       fetchTeams();
     } catch (error) {
       showFeedback(error.response?.data?.message || "Failed to leave team", "error");
+    }
+  };
+
+  const handleSendInvite = async (teamId) => {
+    const targetUserId = inviteUserIdMap[teamId];
+    if (!targetUserId) {
+      showFeedback("Please select an athlete to invite", "error");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await clientServer.post('/teams/invite', {
+        token,
+        teamId,
+        targetUserId
+      });
+      showFeedback(res.data.message || "Invitation sent successfully!", "success");
+      setInviteUserIdMap(prev => ({ ...prev, [teamId]: "" }));
+    } catch (error) {
+      showFeedback(error.response?.data?.message || "Failed to send invitation", "error");
+    }
+  };
+
+  const handleSendChatMessage = async (e, teamId) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await clientServer.post(`/teams/${teamId}/messages`, {
+        token,
+        message: newMessage
+      });
+      setNewMessage("");
+      setChatMessages(prev => [...prev, res.data.messageData]);
+    } catch (error) {
+      showFeedback(error.response?.data?.message || "Failed to send message", "error");
     }
   };
 
@@ -118,6 +196,8 @@ export default function TeamsPage() {
       default: return 'fa-users';
     }
   };
+
+  const currentUserId = authState.user?.userId?._id;
 
   return (
     <UserLayout>
@@ -150,6 +230,7 @@ export default function TeamsPage() {
               {teams.map((team) => {
                 const isMember = isUserMember(team);
                 const isFull = team.members.length >= team.maxSize;
+                const isOwner = team.creatorId?._id === currentUserId || team.creatorId === currentUserId;
                 
                 return (
                   <div key={team._id} className={styles.teamCard}>
@@ -163,12 +244,46 @@ export default function TeamsPage() {
                     </div>
 
                     <div className={styles.cardBody}>
-                      <h3>{team.name}</h3>
+                      <div className={styles.titleSection}>
+                        <h3>{team.name}</h3>
+                        {isOwner && <span className={styles.ownerBadge}>Owner</span>}
+                      </div>
+                      
                       <p className={styles.description}>{team.description}</p>
                       
                       <div className={styles.creatorInfo}>
                         <small>Created by: <strong>{team.creatorId?.name || "Unknown"}</strong></small>
                       </div>
+
+                      {/* Owner panel to invite connections */}
+                      {isOwner && (
+                        <div className={styles.inviteContainer}>
+                          <h4>Invite Athlete</h4>
+                          <div className={styles.inviteRow}>
+                            <select 
+                              value={inviteUserIdMap[team._id] || ""} 
+                              onChange={(e) => setInviteUserIdMap(prev => ({ ...prev, [team._id]: e.target.value }))}
+                              className={styles.inviteSelect}
+                            >
+                              <option value="">Select an athlete...</option>
+                              {authState.all_users && authState.all_users
+                                .filter(u => u.userId && u.userId._id !== currentUserId && !team.members.some(m => m._id === u.userId._id))
+                                .map(u => (
+                                  <option key={u.userId._id} value={u.userId._id}>
+                                    {u.userId.name} (@{u.userId.username})
+                                  </option>
+                                ))
+                              }
+                            </select>
+                            <button 
+                              onClick={() => handleSendInvite(team._id)}
+                              className={styles.inviteBtn}
+                            >
+                              Invite
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
                       <div className={styles.membersSection}>
                         <h4>Squad Members:</h4>
@@ -194,27 +309,87 @@ export default function TeamsPage() {
                     </div>
 
                     <div className={styles.cardFooter}>
-                      {isMember ? (
-                        <button 
-                          className={styles.leaveBtn} 
-                          onClick={() => handleLeaveTeam(team._id)}
-                        >
-                          <i className="fa-solid fa-arrow-right-from-bracket"></i> Leave Squad
-                        </button>
-                      ) : (
-                        <button 
-                          className={styles.joinBtn} 
-                          onClick={() => handleJoinTeam(team._id)}
-                          disabled={isFull}
-                        >
-                          {isFull ? (
-                            <>Full Squad</>
-                          ) : (
-                            <><i className="fa-solid fa-plus-circle"></i> Join Squad</>
-                          )}
-                        </button>
-                      )}
+                      <div className={styles.footerActions}>
+                        {isMember ? (
+                          <>
+                            <button 
+                              className={`${styles.chatToggleBtn} ${activeChatTeamId === team._id ? styles.activeChat : ''}`}
+                              onClick={() => setActiveChatTeamId(activeChatTeamId === team._id ? null : team._id)}
+                            >
+                              <i className="fa-solid fa-comments"></i> 
+                              {activeChatTeamId === team._id ? "Close Chat" : "Squad Chat"}
+                            </button>
+                            
+                            <button 
+                              className={styles.leaveBtn} 
+                              onClick={() => handleLeaveTeam(team._id)}
+                            >
+                              Leave
+                            </button>
+                          </>
+                        ) : (
+                          <button 
+                            className={styles.joinBtn} 
+                            onClick={() => handleJoinTeam(team._id)}
+                            disabled={isFull}
+                          >
+                            {isFull ? (
+                              <>Full Squad</>
+                            ) : (
+                              <><i className="fa-solid fa-plus-circle"></i> Join Squad</>
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Chatroom expanded container */}
+                    {isMember && activeChatTeamId === team._id && (
+                      <div className={styles.chatRoom}>
+                        <div className={styles.chatMessagesList}>
+                          {chatMessages.length > 0 ? (
+                            chatMessages.map(msg => {
+                              const isMyMsg = msg.senderId?._id === currentUserId || msg.senderId === currentUserId;
+                              return (
+                                <div 
+                                  key={msg._id} 
+                                  className={`${styles.chatMessageItem} ${isMyMsg ? styles.myMessage : ''}`}
+                                >
+                                  <img 
+                                    src={
+                                      !msg.senderId?.profilePicture || msg.senderId?.profilePicture === 'default.jpg'
+                                        ? `${BASE_URL}/uploads/default.jpg`
+                                        : `${BASE_URL}/uploads/${msg.senderId?.profilePicture}`
+                                    } 
+                                    alt={msg.senderId?.name}
+                                    className={styles.chatAvatar}
+                                  />
+                                  <div className={styles.chatMsgContent}>
+                                    <span className={styles.chatSenderName}>{msg.senderId?.name}</span>
+                                    <p className={styles.chatMsgText}>{msg.message}</p>
+                                    <span className={styles.chatTime}>{new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div className={styles.emptyChat}>No messages yet. Say hello to your squad!</div>
+                          )}
+                        </div>
+                        <form onSubmit={(e) => handleSendChatMessage(e, team._id)} className={styles.chatInputForm}>
+                          <input 
+                            type="text" 
+                            value={newMessage} 
+                            onChange={(e) => setNewMessage(e.target.value)} 
+                            placeholder="Type a message to your squad..."
+                            className={styles.chatInput}
+                          />
+                          <button type="submit" className={styles.chatSendBtn}>
+                            <i className="fa-solid fa-paper-plane"></i>
+                          </button>
+                        </form>
+                      </div>
+                    )}
                   </div>
                 );
               })}
