@@ -152,3 +152,7 @@ public/build/
 # Temporary files
 tmp/
 temp/
+
+# Uploads
+backend/uploads/*
+!backend/uploads/default.jpg

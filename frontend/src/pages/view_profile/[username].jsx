@@ -81,6 +81,24 @@ export default function ViewProfilePage({userProfile}) {
     });
 
   }, [authState.connection, authState.connectionRequest, userProfile?.userId?._id])
+
+  const [userConnections, setUserConnections] = useState([]);
+
+  const fetchUserConnections = async () => {
+    try {
+      if (!userProfile?.userId?._id) return;
+      const res = await clientServer.get(`/user/get_user_connections?userId=${userProfile.userId._id}`);
+      setUserConnections(res.data.connections || []);
+    } catch (error) {
+      console.error("Failed to fetch user connections:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (connectionStatus.isConnected && userProfile?.userId?._id) {
+      fetchUserConnections();
+    }
+  }, [connectionStatus.isConnected, userProfile?.userId?._id]);
   
   useEffect(() => {
     getUsersPost();
@@ -217,6 +235,40 @@ export default function ViewProfilePage({userProfile}) {
                     {userProfile.bio && (
                       <div className={styles.bioSection}>
                         <p>"{userProfile.bio}"</p>
+                      </div>
+                    )}
+
+                    {/* Connections/Followers Section */}
+                    {connectionStatus.isConnected && (
+                      <div className={styles.connectionsSection}>
+                        <h3>Connections ({userConnections.length})</h3>
+                        {userConnections.length > 0 ? (
+                          <div className={styles.connectionsGrid}>
+                            {userConnections.map((conn) => (
+                              <div 
+                                key={conn._id} 
+                                className={styles.connectionCard}
+                                onClick={() => router.push(`/view_profile/${conn.username}`)}
+                              >
+                                <img 
+                                  src={
+                                    !conn.profilePicture || conn.profilePicture === 'default.jpg'
+                                      ? `${BASE_URL}/uploads/default.jpg`
+                                      : `${BASE_URL}/uploads/${conn.profilePicture}`
+                                  } 
+                                  alt={conn.name} 
+                                  className={styles.connectionAvatar}
+                                />
+                                <div className={styles.connectionNameInfo}>
+                                  <h4>{conn.name}</h4>
+                                  <p>@{conn.username}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className={styles.noConnections}>No connections yet.</p>
+                        )}
                       </div>
                     )}
                   </div>

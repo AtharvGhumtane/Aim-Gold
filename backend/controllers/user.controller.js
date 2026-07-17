@@ -11,6 +11,7 @@ import Post from "../models/posts.model.js";
 import Comment from "../models/comments.model.js";
 import mongoose from "mongoose"; 
 import { fileURLToPath } from "url";
+import Notification from "../models/notification.model.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -267,6 +268,15 @@ export const sendConnectionRequest = async (req, res) => {
 
         await request.save();
 
+        const notification = new Notification({
+            userId: connectionUser._id,
+            senderId: user._id,
+            type: "connection_request",
+            relatedId: request._id,
+            message: `${user.name} sent you a connection request.`,
+        });
+        await notification.save();
+
         return res.json({ message: "Connection request sent successfully" });
 
     }catch(error){
@@ -359,7 +369,7 @@ export const commentPost = async (req, res) => {
 
   try {
     // Validate user
-    const user = await User.findOne({ token }).select("_id");
+    const user = await User.findOne({ token }).select("_id name");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     // Validate post
@@ -374,6 +384,18 @@ export const commentPost = async (req, res) => {
     });
 
     await comment.save();
+
+    // Create a notification for the post author (if commenter is not the author)
+    if (post.userId && post.userId.toString() !== user._id.toString()) {
+        const notification = new Notification({
+            userId: post.userId,
+            senderId: user._id,
+            type: "comment",
+            relatedId: post._id,
+            message: `${user.name} commented on your post.`,
+        });
+        await notification.save();
+    }
 
     return res.status(200).json({ message: "Comment added successfully" });
   } catch (error) {
@@ -407,3 +429,79 @@ export const getUserProfileAndUserBasedOnUsername = async (req,res) => {
         return res.status(500).json({message:error.message})
     }
 }
+
+export const getNotifications = async (req, res) => {
+    const { token } = req.query;
+
+    try {
+        const user = await User.findOne({ token });
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const notifications = await Notification.find({ userId: user._id })
+            .populate('senderId', 'name username profilePicture')
+            .sort({ createdAt: -1 });
+
+        return res.json({ notifications });
+    } catch (error) {
+        console.error("Get notifications error:", error);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+export const markNotificationsRead = async (req, res) => {
+    const { token, notificationId } = req.body;
+
+    try {
+        const user = await User.findOne({ token });
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        if (notificationId) {
+            await Notification.updateOne(
+                { _id: notificationId, userId: user._id },
+                { $set: { isRead: true } }
+            );
+        } else {
+            await Notification.updateMany(
+                { userId: user._id, isRead: false },
+                { $set: { isRead: true } }
+            );
+        }
+
+        return res.json({ message: "Notifications marked as read" });
+    } catch (error) {
+        console.error("Mark notifications read error:", error);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+export const getUserConnections = async (req, res) => {
+    const { userId } = req.query;
+
+    try {
+        if (!userId) return res.status(400).json({ message: "User ID is required" });
+
+        // Find all accepted connection requests where this user is either sender or receiver
+        const connections = await ConnectionRequest.find({
+            $or: [
+                { userId: userId, status_accepted: true },
+                { connectionId: userId, status_accepted: true }
+            ]
+        })
+        .populate('userId', 'name email username profilePicture')
+        .populate('connectionId', 'name email username profilePicture');
+
+        // Map them to return the other user
+        const formattedConnections = connections.map(conn => {
+            if (conn.userId._id.toString() === userId.toString()) {
+                return conn.connectionId;
+            } else {
+                return conn.userId;
+            }
+        });
+
+        return res.json({ connections: formattedConnections });
+    } catch (error) {
+        console.error("Get user connections error:", error);
+        return res.status(500).json({ message: error.message });
+    }
+};

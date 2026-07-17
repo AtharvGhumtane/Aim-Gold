@@ -7,11 +7,10 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 
 import postsRoutes from './routes/posts.routes.js';
-
 import userRoutes from './routes/user.routes.js';
+import teamRoutes from './routes/team.routes.js';
 
 import path from 'path';
-
 import { fileURLToPath } from 'url';
 
 
@@ -32,6 +31,7 @@ app.use(cors());
 app.use(express.json());
 app.use(postsRoutes);
 app.use(userRoutes);
+app.use(teamRoutes);
 app.use('/uploads', express.static(uploadsDir));
 
 

@@ -4,6 +4,7 @@ import styles from "./styles.module.css"
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import { reset } from '@/config/redux/reducer/authReducer';
+import { clientServer, BASE_URL } from '@/config';
 
 export default function NavbarComponent() {
   const router = useRouter();
@@ -11,8 +12,46 @@ export default function NavbarComponent() {
   const authState = useSelector((state) => state.auth);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const settingsRef = useRef(null);
   const notificationsRef = useRef(null);
+
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const response = await clientServer.get(`/user/notifications?token=${token}`);
+      const list = response.data.notifications || [];
+      setNotifications(list);
+      setUnreadCount(list.filter(n => !n.isRead).length);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (authState.profileFetched && authState.user?.userId) {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [authState.profileFetched, authState.user]);
+
+  const handleToggleNotifications = async () => {
+    const nextState = !isNotificationsOpen;
+    setIsNotificationsOpen(nextState);
+    if (nextState && unreadCount > 0) {
+      try {
+        const token = localStorage.getItem("token");
+        await clientServer.post('/user/notifications/mark_read', { token });
+        setUnreadCount(0);
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      } catch (error) {
+        console.error("Failed to mark notifications as read:", error);
+      }
+    }
+  };
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -94,10 +133,12 @@ export default function NavbarComponent() {
               <div className={styles.notificationContainer} ref={notificationsRef}>
                 <div
                   className={styles.notificationIcon}
-                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                  onClick={handleToggleNotifications}
                 >
                   <i className="fa-solid fa-bell"></i>
-                  <span className={styles.notificationBadge}>3</span>
+                  {unreadCount > 0 && (
+                    <span className={styles.notificationBadge}>{unreadCount}</span>
+                  )}
                 </div>
                 
                 {isNotificationsOpen && (
@@ -105,27 +146,21 @@ export default function NavbarComponent() {
                     <div className={styles.dropdownHeader}>
                       <h4>Notifications</h4>
                     </div>
-                    <div className={styles.notificationItem}>
-                      <i className="fa-solid fa-user-plus"></i>
-                      <div>
-                        <p>New connection request</p>
-                        <span>2 minutes ago</span>
+                    {notifications.length > 0 ? (
+                      notifications.slice(0, 5).map((noti) => (
+                        <div key={noti._id} className={`${styles.notificationItem} ${!noti.isRead ? styles.unreadItem : ''}`}>
+                          <i className={noti.type === 'connection_request' ? 'fa-solid fa-user-plus' : 'fa-solid fa-comment'}></i>
+                          <div>
+                            <p>{noti.message}</p>
+                            <span>{new Date(noti.createdAt).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className={styles.emptyNotifications}>
+                        <p>No new notifications</p>
                       </div>
-                    </div>
-                    <div className={styles.notificationItem}>
-                      <i className="fa-solid fa-calendar"></i>
-                      <div>
-                        <p>Upcoming match reminder</p>
-                        <span>1 hour ago</span>
-                      </div>
-                    </div>
-                    <div className={styles.notificationItem}>
-                      <i className="fa-solid fa-trophy"></i>
-                      <div>
-                        <p>Tournament invitation</p>
-                        <span>3 hours ago</span>
-                      </div>
-                    </div>
+                    )}
                     <div className={styles.viewAllNotifications}>
                       View All Notifications
                     </div>

@@ -201,6 +201,17 @@
   background: #f8fafc;
 }
 
+.unreadItem {
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.emptyNotifications {
+  padding: 1.5rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
 .notificationItem:last-of-type {
   border-bottom: none;
 }
