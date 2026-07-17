@@ -153,6 +153,8 @@ export default function NavbarComponent() {
                             noti.type === 'connection_request' ? 'fa-solid fa-user-plus' :
                             noti.type === 'team_invite' ? 'fa-solid fa-users-gear' :
                             noti.type === 'team_join_request' ? 'fa-solid fa-user-clock' :
+                            noti.type === 'like' ? 'fa-solid fa-heart' :
+                            noti.type === 'team_message' ? 'fa-solid fa-comments' :
                             'fa-solid fa-comment'
                           }></i>
                           <div className={styles.notificationContentBody}>
@@ -246,6 +248,54 @@ export default function NavbarComponent() {
                                   }}
                                 >
                                   ✗ Decline
+                                </button>
+                              </div>
+                            )}
+                            {noti.type === 'connection_request' && !noti.isRead && (
+                              <div className={styles.inviteActions}>
+                                <button 
+                                  className={styles.acceptInviteBtn}
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      const token = localStorage.getItem("token");
+                                      await clientServer.post('/user/accept_connection_request', {
+                                        token,
+                                        requestId: noti.relatedId,
+                                        action_type: "accept"
+                                      });
+                                      fetchNotifications();
+                                      if (router.pathname === '/my_connections') {
+                                        router.replace(router.asPath);
+                                      }
+                                    } catch (err) {
+                                      console.error("Failed to accept connection request:", err);
+                                    }
+                                  }}
+                                >
+                                  Accept
+                                </button>
+                                <button 
+                                  className={styles.declineInviteBtn}
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      const token = localStorage.getItem("token");
+                                      await clientServer.post('/user/accept_connection_request', {
+                                        token,
+                                        requestId: noti.relatedId,
+                                        action_type: "reject"
+                                      });
+                                      fetchNotifications();
+                                      if (router.pathname === '/my_connections') {
+                                        router.replace(router.asPath);
+                                      }
+                                    } catch (err) {
+                                      console.error("Failed to decline connection request:", err);
+                                    }
+                                  }}
+                                >
+                                  Reject
                                 </button>
                               </div>
                             )}

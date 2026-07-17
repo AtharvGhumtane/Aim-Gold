@@ -352,6 +352,16 @@ export const acceptConnectionRequest = async (req, res) => {
 
         if(action_type === "accept") {
             connection.status_accepted = true;
+
+            // Trigger notification back to original requester informing them they've been accepted
+            const acceptNoti = new Notification({
+                userId: connection.userId, // original requester
+                senderId: user._id,       // user who accepted
+                type: "connection_request",
+                relatedId: connection._id,
+                message: `${user.name} accepted your connection request.`
+            });
+            await acceptNoti.save();
         } else {
             connection.status_accepted = false;
         }

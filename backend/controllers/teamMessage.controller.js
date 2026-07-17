@@ -1,6 +1,7 @@
 import TeamMessage from "../models/teamMessage.model.js";
 import Team from "../models/teams.model.js";
 import User from "../models/user.model.js";
+import Notification from "../models/notification.model.js";
 
 export const getTeamMessages = async (req, res) => {
     const { teamId } = req.params;
@@ -59,6 +60,24 @@ export const sendTeamMessage = async (req, res) => {
         });
 
         await teamMsg.save();
+
+        // Notify other team members about the new message
+        try {
+            const otherMembers = team.members.filter(m => m.toString() !== user._id.toString());
+            if (otherMembers.length > 0) {
+                const notifications = otherMembers.map(memberId => new Notification({
+                    userId: memberId,
+                    senderId: user._id,
+                    type: "team_message",
+                    relatedId: team._id,
+                    message: `New message in "${team.name}" squad chat from ${user.name}.`
+                }));
+                await Notification.insertMany(notifications);
+                console.log(`Dispatched team chat notifications to ${otherMembers.length} teammates.`);
+            }
+        } catch (notiErr) {
+            console.error("Failed to dispatch team message notifications:", notiErr);
+        }
 
         const populatedMsg = await TeamMessage.findById(teamMsg._id)
             .populate('senderId', 'name username profilePicture');

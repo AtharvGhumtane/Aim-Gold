@@ -91,6 +91,26 @@ async function runTests() {
   console.log("Found created post:", createdPost);
   const postId = createdPost._id;
 
+  // 3.5. BETA LIKES ALPHA'S POST
+  console.log("\n--- User Beta Likes User Alpha's Post ---");
+  const likeRes = await fetch(`${API_BASE}/increment_post_like`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      post_id: postId,
+      user_id: userIds[userBeta.username]
+    })
+  });
+  const likeData = await likeRes.json();
+  console.log("Like Toggle status:", likeRes.status, likeData.message);
+
+  // Check Alpha's notifications for like
+  console.log("\n--- Checking Alpha's Notifications for Likes ---");
+  const alphaLikeNotiRes = await fetch(`${API_BASE}/user/notifications?token=${tokens[userAlpha.username]}`);
+  const alphaLikeNotiData = await alphaLikeNotiRes.json();
+  const likeNotification = alphaLikeNotiData.notifications.find(n => n.type === 'like');
+  console.log("Found like notification:", likeNotification ? likeNotification.message : "Not found!");
+
   // 4. BETA COMMENTS ON ALPHA'S POST
   console.log("\n--- User Beta Comments on User Alpha's Post ---");
   const commentRes = await fetch(`${API_BASE}/comment`, {
@@ -146,6 +166,13 @@ async function runTests() {
   });
   const acceptConnData = await acceptConnRes.json();
   console.log("Accept Connection status:", acceptConnRes.status, acceptConnData.message);
+
+  // Check Alpha's notifications for connection acceptance
+  console.log("\n--- Checking Alpha's Notifications for Connection Acceptance ---");
+  const alphaConnNotiRes = await fetch(`${API_BASE}/user/notifications?token=${tokens[userAlpha.username]}`);
+  const alphaConnNotiData = await alphaConnNotiRes.json();
+  const connAcceptNoti = alphaConnNotiData.notifications.find(n => n.type === 'connection_request' && n.message.includes("accepted"));
+  console.log("Found connection acceptance notification:", connAcceptNoti ? connAcceptNoti.message : "Not found!");
 
   // Verify they are connected by getting user connections list
   const getConnRes = await fetch(`${API_BASE}/user/get_user_connections?userId=${userIds[userAlpha.username]}`);
@@ -267,6 +294,20 @@ async function runTests() {
   });
   const msgData = await msgRes.json();
   console.log("Message sent status:", msgRes.status, msgData.message);
+
+  // Check Alpha's notifications for team message
+  console.log("\n--- Checking Alpha's Notifications for Team Messages ---");
+  const alphaMsgNotiRes = await fetch(`${API_BASE}/user/notifications?token=${tokens[userAlpha.username]}`);
+  const alphaMsgNotiData = await alphaMsgNotiRes.json();
+  const msgNotification = alphaMsgNotiData.notifications.find(n => n.type === 'team_message');
+  console.log("Found squad chat message notification for Alpha:", msgNotification ? msgNotification.message : "Not found!");
+
+  // Check Gamma's notifications for team message
+  console.log("\n--- Checking Gamma's Notifications for Team Messages ---");
+  const gammaMsgNotiRes = await fetch(`${API_BASE}/user/notifications?token=${tokens[userGamma.username]}`);
+  const gammaMsgNotiData = await gammaMsgNotiRes.json();
+  const gammaMsgNotification = gammaMsgNotiData.notifications.find(n => n.type === 'team_message');
+  console.log("Found squad chat message notification for Gamma:", gammaMsgNotification ? gammaMsgNotification.message : "Not found!");
 
   // Retrieve chat messages
   const getMsgsRes = await fetch(`${API_BASE}/teams/${teamId}/messages?token=${tokens[userAlpha.username]}`);

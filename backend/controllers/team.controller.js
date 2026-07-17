@@ -61,7 +61,7 @@ export const joinTeam = async (req, res) => {
         const team = await Team.findById(teamId);
         if (!team) return res.status(404).json({ message: "Team not found" });
 
-        if (team.members.includes(user._id)) {
+        if (team.members.some(m => m.toString() === user._id.toString())) {
             return res.status(400).json({ message: "You are already a member of this team" });
         }
 
@@ -118,7 +118,7 @@ export const acceptJoinRequest = async (req, res) => {
         const requester = await User.findById(requesterId);
         if (!requester) return res.status(404).json({ message: "Requester user not found" });
 
-        if (team.members.includes(requester._id)) {
+        if (team.members.some(m => m.toString() === requester._id.toString())) {
             await Notification.updateOne({ _id: notificationId }, { $set: { isRead: true } });
             return res.status(400).json({ message: "User is already a member of this team" });
         }
@@ -198,7 +198,7 @@ export const leaveTeam = async (req, res) => {
         const team = await Team.findById(teamId);
         if (!team) return res.status(404).json({ message: "Team not found" });
 
-        const index = team.members.indexOf(user._id);
+        const index = team.members.findIndex(m => m.toString() === user._id.toString());
         if (index === -1) {
             return res.status(400).json({ message: "You are not a member of this team" });
         }
@@ -250,7 +250,7 @@ export const inviteToTeam = async (req, res) => {
         const targetUser = await User.findById(targetUserId);
         if (!targetUser) return res.status(404).json({ message: "Target user not found" });
 
-        if (team.members.includes(targetUser._id)) {
+        if (team.members.some(m => m.toString() === targetUser._id.toString())) {
             return res.status(400).json({ message: "User is already a member of this team" });
         }
 
@@ -302,7 +302,7 @@ export const acceptTeamInvite = async (req, res) => {
         const team = await Team.findById(teamId);
         if (!team) return res.status(404).json({ message: "Team not found" });
 
-        if (team.members.includes(user._id)) {
+        if (team.members.some(m => m.toString() === user._id.toString())) {
             // Already a member, just mark notification as read
             await Notification.updateOne(
                 { _id: notificationId, userId: user._id },

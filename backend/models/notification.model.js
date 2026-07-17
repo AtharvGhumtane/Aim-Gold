@@ -13,7 +13,7 @@ const NotificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ["connection_request", "comment", "team_invite", "team_join_request"],
+        enum: ["connection_request", "comment", "team_invite", "team_join_request", "like", "team_message"],
         required: true,
     },
     relatedId: {

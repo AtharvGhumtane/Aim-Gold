@@ -7,6 +7,7 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 
 import Comment from "../models/comments.model.js"; 
+import Notification from "../models/notification.model.js"; 
 
 export const activeCheck = async (req, res) => {
     return res.status(200).json({
@@ -188,6 +189,26 @@ export const increment_likes = async (req, res) => {
       // User hasn't liked the post, so add like
       newLikes.push(user_id);
       action = "liked";
+
+      // Trigger notification for the post author (if commenter/liker is not the author)
+      if (post.userId.toString() !== user_id.toString()) {
+        try {
+          const userWhoLiked = await User.findById(user_id);
+          if (userWhoLiked) {
+            const likeNotification = new Notification({
+              userId: post.userId,
+              senderId: user_id,
+              type: "like",
+              relatedId: post._id,
+              message: `${userWhoLiked.name} liked your post.`
+            });
+            await likeNotification.save();
+            console.log("Like notification saved successfully for user:", post.userId);
+          }
+        } catch (err) {
+          console.error("Error creating like notification:", err);
+        }
+      }
     } else {
       console.log("User found in likes, removing...");
       // User has already liked the post, so remove like
