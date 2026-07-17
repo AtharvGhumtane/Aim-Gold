@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 import postsRoutes from './routes/posts.routes.js';
 import userRoutes from './routes/user.routes.js';
 import teamRoutes from './routes/team.routes.js';
+import eventRoutes from './routes/sportEvent.routes.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -32,6 +33,7 @@ app.use(express.json());
 app.use(postsRoutes);
 app.use(userRoutes);
 app.use(teamRoutes);
+app.use(eventRoutes);
 app.use('/uploads', express.static(uploadsDir));
 
 

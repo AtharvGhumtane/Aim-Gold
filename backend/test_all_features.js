@@ -317,6 +317,150 @@ async function runTests() {
     console.log(`[${m.senderId.name}]: ${m.message}`);
   }
 
+  console.log("\n=== SPORT EVENT TESTS ===");
+
+  const tokenAlpha = tokens[userAlpha.username];
+  const tokenBeta  = tokens[userBeta.username];
+
+  const today = new Date();
+  const startDate = today.toISOString().split('T')[0];
+  const endDate   = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const matchDateInRange  = new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const matchDateOutRange = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+  // Test 1: Host creates event
+  console.log("\n[EVENT TEST 1] Alpha creates a Sport Event");
+  const createEventRes = await fetch(`${API_BASE}/events`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      token: tokenAlpha, name: `Test Tournament ${suffix}`,
+      description: 'An automated test event', startDate, endDate,
+      sports: JSON.stringify([{ sportName: 'Football', advanceCount: 2 }]),
+    })
+  });
+  const createEventData = await createEventRes.json();
+  if (!createEventData.eventKey) throw new Error("Event creation failed — no eventKey: " + JSON.stringify(createEventData));
+  const eventId  = createEventData.event._id;
+  const eventKey = createEventData.eventKey;
+  console.log(`✅ Event created. ID=${eventId}, Key=${eventKey}`);
+
+  // Test 2: Follower joins via key
+  console.log("\n[EVENT TEST 2] Beta joins event using key");
+  const joinRes = await fetch(`${API_BASE}/events/join`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: tokenBeta, eventKey })
+  });
+  const joinData = await joinRes.json();
+  if (joinRes.status !== 200) throw new Error("Join by key failed: " + joinData.message);
+  console.log(`✅ Beta joined: ${joinData.message}`);
+
+  // Test 3: Duplicate join rejected
+  console.log("\n[EVENT TEST 3] Beta joins again (should be 400)");
+  const joinAgainRes = await fetch(`${API_BASE}/events/join`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: tokenBeta, eventKey })
+  });
+  if (joinAgainRes.status !== 400) throw new Error("Duplicate join should return 400");
+  console.log(`✅ Duplicate join correctly rejected (400)`);
+
+  // Test 4: Host adds two teams
+  console.log("\n[EVENT TEST 4] Alpha adds Thunder FC and Storm United");
+  for (const [teamName, color] of [['Thunder FC', '#e63946'], ['Storm United', '#2196f3']]) {
+    const r = await fetch(`${API_BASE}/events/${eventId}/teams`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: tokenAlpha, sportName: 'Football', teamName, color, players: JSON.stringify([{name:'Alice'},{name:'Bob'}]) })
+    });
+    const d = await r.json();
+    if (r.status !== 201) throw new Error(`Add team '${teamName}' failed: ${d.message}`);
+    console.log(`✅ Team '${teamName}' added`);
+  }
+
+  // Test 5a: Validation — self-play
+  console.log("\n[EVENT TEST 5a] Self-play validation (expect 400)");
+  const selfPlayRes = await fetch(`${API_BASE}/events/${eventId}/matches`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: tokenAlpha, sportName: 'Football', homeTeamName: 'Thunder FC', awayTeamName: 'Thunder FC' })
+  });
+  if (selfPlayRes.status !== 400) throw new Error("Self-play should return 400, got " + selfPlayRes.status);
+  console.log(`✅ Self-play correctly rejected (400)`);
+
+  // Test 5b: Validation — unregistered team
+  console.log("\n[EVENT TEST 5b] Unregistered team validation (expect 400)");
+  const unregRes = await fetch(`${API_BASE}/events/${eventId}/matches`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: tokenAlpha, sportName: 'Football', homeTeamName: 'Thunder FC', awayTeamName: 'Ghost FC' })
+  });
+  if (unregRes.status !== 400) throw new Error("Unregistered team should return 400, got " + unregRes.status);
+  console.log(`✅ Unregistered team correctly rejected (400)`);
+
+  // Test 5c: Validation — date out of range
+  console.log("\n[EVENT TEST 5c] Out-of-range match date (expect 400)");
+  const outRangeRes = await fetch(`${API_BASE}/events/${eventId}/matches`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: tokenAlpha, sportName: 'Football', homeTeamName: 'Thunder FC', awayTeamName: 'Storm United', matchDate: matchDateOutRange })
+  });
+  if (outRangeRes.status !== 400) throw new Error("Out-of-range date should return 400, got " + outRangeRes.status);
+  console.log(`✅ Out-of-range match date correctly rejected (400)`);
+
+  // Test 6: Create valid group match
+  console.log("\n[EVENT TEST 6] Alpha creates a valid group stage match");
+  const createMatchRes = await fetch(`${API_BASE}/events/${eventId}/matches`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: tokenAlpha, sportName: 'Football', homeTeamName: 'Thunder FC', awayTeamName: 'Storm United', round: 'Group Stage', matchDate: matchDateInRange })
+  });
+  const createMatchData = await createMatchRes.json();
+  if (createMatchRes.status !== 201) throw new Error("Match creation failed: " + createMatchData.message);
+  const matchId = createMatchData.match._id;
+  console.log(`✅ Match created. ID=${matchId}`);
+
+  // Test 7: Host-only score enforcement
+  console.log("\n[EVENT TEST 7] Beta tries to update score (expect 403)");
+  const betaScoreRes = await fetch(`${API_BASE}/events/${eventId}/matches/${matchId}/score`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: tokenBeta, homeScore: 5, awayScore: 0, status: 'live' })
+  });
+  if (betaScoreRes.status !== 403) throw new Error("Non-host score update should return 403, got " + betaScoreRes.status);
+  console.log(`✅ Beta correctly blocked from updating score (403)`);
+
+  // Test 8: Score update + standings recalculation
+  console.log("\n[EVENT TEST 8] Alpha sets 3-1, marks completed — standings should recalculate");
+  const scoreRes = await fetch(`${API_BASE}/events/${eventId}/matches/${matchId}/score`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: tokenAlpha, homeScore: 3, awayScore: 1, status: 'completed' })
+  });
+  const scoreData = await scoreRes.json();
+  if (scoreRes.status !== 200) throw new Error("Score update failed: " + scoreData.message);
+  const standings = scoreData.standings || [];
+  if (!standings.length) throw new Error("Standings not returned after completion");
+  const thunder = standings.find(r => r.teamName === 'Thunder FC');
+  const storm   = standings.find(r => r.teamName === 'Storm United');
+  if (!thunder || thunder.points !== 3) throw new Error(`Expected Thunder FC 3pts, got ${thunder?.points}`);
+  if (!storm   || storm.points   !== 0) throw new Error(`Expected Storm United 0pts, got ${storm?.points}`);
+  console.log(`✅ Standings correct. Thunder FC: ${thunder.points}pts (rank 1), Storm United: ${storm.points}pts`);
+
+  // Test 9: Host-only photo check
+  console.log("\n[EVENT TEST 9] Beta tries to upload photo — JSON body (no file) → expect 403 or 400");
+  const betaPhotoRes = await fetch(`${API_BASE}/events/${eventId}/photos`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: tokenBeta, caption: 'Hack attempt' })
+  });
+  const betaPhotoStatus = betaPhotoRes.status;
+  if (betaPhotoStatus !== 403 && betaPhotoStatus !== 400) {
+    throw new Error("Beta photo upload should return 403 or 400, got " + betaPhotoStatus);
+  }
+  console.log(`✅ Beta photo upload blocked (${betaPhotoStatus})`);
+
+  // Test 10: Public event listing
+  console.log("\n[EVENT TEST 10] Event appears in public GET /events listing");
+  const allEventsRes = await fetch(`${API_BASE}/events`);
+  const allEventsData = await allEventsRes.json();
+  const found = allEventsData.events?.find(e => e._id === eventId);
+  if (!found) throw new Error("Created event not found in GET /events");
+  console.log(`✅ Event visible in listing. Followers: ${found.followers?.length}`);
+
+  console.log("\n=== SPORT EVENT TESTS COMPLETED ===");
+
   console.log("\n=== ALL END-TO-END FEATURES COMPLETED SUCCESSFULLY AND VALIDATED! ===");
 }
 

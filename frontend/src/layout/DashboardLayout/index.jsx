@@ -138,6 +138,19 @@ export default function DashboardLayout({children}) {
                     <small>Join or create teams</small>
                   </div>
                 </div>
+
+                <div 
+                  onClick={() => router.push("/events")}
+                  className={`${styles.sideBarOption} ${router.pathname.startsWith('/events') ? styles.active : ''}`}
+                >
+                  <div className={styles.iconWrapper}>
+                    <i className="fa-solid fa-trophy"></i>
+                  </div>
+                  <div className={styles.optionContent}>
+                    <span>Sport Events</span>
+                    <small>Tournaments & brackets</small>
+                  </div>
+                </div>
               </div>
 
               {/* Sports Categories */}
