@@ -20,6 +20,12 @@ export default function DashboardLayout({children}) {
     }
   }, []);
 
+  useEffect(() => {
+    if (authState.isError && !authState.loggedIn) {
+      router.push("/login");
+    }
+  }, [authState.isError, authState.loggedIn]);
+
   return (
     <div className={styles.layoutWrapper}>
       <div className={styles.container}>

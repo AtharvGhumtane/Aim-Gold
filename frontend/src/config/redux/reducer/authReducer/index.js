@@ -84,6 +84,16 @@ const authSlice = createSlice({
         // ✅ FIXED: Use correct property name from backend response
         state.user = action.payload.userProfile;  // Changed from 'Profile' to 'userProfile'
       })
+      .addCase(getAboutUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.profileFetched = false;
+        state.loggedIn = false;
+        state.user = null;
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("token");
+        }
+      })
       .addCase(getAllUsers.fulfilled,(state,action) => {
         state.isLoading = false;
         state.isError = false;
