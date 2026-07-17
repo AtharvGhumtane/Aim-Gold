@@ -404,31 +404,35 @@
   color: #64748b;
 }
 
+
+
 /* FIXED: Scrollbar Styling for new content wrappers */
 .sidebarContent::-webkit-scrollbar,
-.feedContent::-webkit-scrollbar,
 .extraContent::-webkit-scrollbar {
+  display: none;
+}
+
+.sidebarContent,
+.extraContent {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.feedContent::-webkit-scrollbar {
   width: 6px;
 }
 
-.sidebarContent::-webkit-scrollbar-track,
-.feedContent::-webkit-scrollbar-track,
-.extraContent::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 3px;
+.feedContent::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.sidebarContent::-webkit-scrollbar-thumb,
-.feedContent::-webkit-scrollbar-thumb,
-.extraContent::-webkit-scrollbar-thumb {
-  background: rgba(102, 126, 234, 0.3);
-  border-radius: 3px;
+.feedContent::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3); /* Slate-400 */
+  border-radius: 99px;
 }
 
-.sidebarContent::-webkit-scrollbar-thumb:hover,
-.feedContent::-webkit-scrollbar-thumb:hover,
-.extraContent::-webkit-scrollbar-thumb:hover {
-  background: rgba(102, 126, 234, 0.5);
+.feedContent::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
 }
 
 /* ADDED: Post container for proper comment positioning */
