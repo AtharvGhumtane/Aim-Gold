@@ -1,9 +1,8 @@
 import { BASE_URL, clientServer, serverClient } from '@/config';
 import DashboardLayout from '@/layout/DashboardLayout';
 import UserLayout from '@/layout/UserLayout';
-import { useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react'
-import styles from "./index.module.css"
+import React, { useEffect, useState } from 'react';
+import styles from "./index.module.css";
 import { getAllPosts } from '@/config/redux/action/postAction';
 import { getConnectionRequest, sendConnectionsRequest, getMyConnectionRequests } from '@/config/redux/action/authAction';
 import { useRouter } from 'next/router';
@@ -17,13 +16,15 @@ export default function ViewProfilePage({userProfile}) {
 
   const [userPosts, setUserPosts] = useState([]);
   const [userTeams, setUserTeams] = useState([]);
-  const [activeTab, setActiveTab] = useState("posts"); // "posts" | "teams"
+  const [userConnections, setUserConnections] = useState([]);
+  const [activeTab, setActiveTab] = useState("posts"); // "posts" | "teams" | "connections"
+  
   const [connectionStatus, setConnectionStatus] = useState({
     isConnected: false,
     isPending: false,
     canConnect: true
   });
-  
+
   const getUsersPost = async () => {
     await dispatch(getAllPosts());
     await dispatch(getConnectionRequest({token:localStorage.getItem("token")}));
@@ -37,8 +38,8 @@ export default function ViewProfilePage({userProfile}) {
       })
       setUserPosts(post);
     }
-  },[postReducer.posts])
-  
+  }, [postReducer.posts]);
+
   useEffect(() => {
     if (!userProfile?.userId?._id) return;
 
@@ -82,9 +83,7 @@ export default function ViewProfilePage({userProfile}) {
       canConnect: !isConnected && !isPending
     });
 
-  }, [authState.connection, authState.connectionRequest, userProfile?.userId?._id])
-
-  const [userConnections, setUserConnections] = useState([]);
+  }, [authState.connection, authState.connectionRequest, userProfile?.userId?._id]);
 
   const fetchUserConnections = async () => {
     try {
@@ -107,17 +106,12 @@ export default function ViewProfilePage({userProfile}) {
   };
 
   useEffect(() => {
-    if (connectionStatus.isConnected && userProfile?.userId?._id) {
-      fetchUserConnections();
-    }
-  }, [connectionStatus.isConnected, userProfile?.userId?._id]);
-  
-  useEffect(() => {
     getUsersPost();
     if (userProfile?.userId?._id) {
       fetchUserTeams();
+      fetchUserConnections();
     }
-  }, [])
+  }, [userProfile?.userId?._id]);
 
   const handleConnect = async () => {
     await dispatch(sendConnectionsRequest({
@@ -145,8 +139,8 @@ export default function ViewProfilePage({userProfile}) {
     return (
       <UserLayout>
         <DashboardLayout>
-          <div className={styles.container}>
-            <div className={styles.emptyState}>
+          <div className={styles.profileMissing}>
+            <div className={styles.missingCard}>
               <i className="fa-solid fa-user-slash"></i>
               <h2>Profile not found</h2>
               <p>The user profile you're looking for doesn't exist or has been removed.</p>
@@ -185,106 +179,218 @@ export default function ViewProfilePage({userProfile}) {
     <UserLayout>
        <DashboardLayout>
           <div className={styles.container}>
-              {/* Hero Section with Profile Picture */}
-              <div className={styles.backDropContainer}>
-                <img 
-                  className={styles.backDrop} 
-                  src={
-                    !userProfile.userId.profilePicture || userProfile.userId?.profilePicture === 'default.jpg'
-                      ? `${BASE_URL}/uploads/default.jpg`
-                      : `${BASE_URL}/uploads/${userProfile.userId.profilePicture}`
-                  } 
-                  alt={`${userProfile.userId.name}'s profile`} 
-                />
-              </div>
-              
-              {/* Sport History Section */}
-              {userProfile.pastWork && userProfile.pastWork.length > 0 && (
-                <div className={styles.workHistory}>
-                   <h1>🏆 Sport History</h1>
-                   <div className={styles.workHistoryContainer}>
-                      {userProfile.pastWork.map((work, index) => (
-                        <div key={index} className={styles.workHistoryCard}>
-                           <p>
-                             Club: {work.company}
-                           </p>
-                           <p>Position: {work.position}</p>
-                           <p>Playing since: {work.years}</p>
-                        </div>
-                      ))}
-                   </div>
-                </div>
-              )}
+              {/* Cover Backdrop Banner */}
+              <div className={styles.backDropContainer}></div>
 
-              {/* Main Profile Details */}
-              <div className={styles.profileContainer__details}> 
-                <div className={styles.profileHeader}>
-                  {/* Left Side - Profile Info */}
-                  <div className={styles.profileInfo}>
-                    <div className={styles.profileNameSection}>
-                      <h2>{userProfile.userId.name}</h2>
-                      <p>@{userProfile.userId.username}</p>
+              {/* Scouting Layout Grid */}
+              <div className={styles.profileLayoutGrid}>
+                
+                {/* Left Side: Athlete Scouting Card */}
+                <div className={styles.scoutingCard}>
+                  <div className={styles.avatarWrapper}>
+                    <img 
+                      className={styles.profileAvatar} 
+                      src={
+                        !userProfile.userId.profilePicture || userProfile.userId?.profilePicture === 'default.jpg'
+                          ? `${BASE_URL}/uploads/default.jpg`
+                          : `${BASE_URL}/uploads/${userProfile.userId.profilePicture}`
+                      } 
+                      alt={`${userProfile.userId.name}'s profile`} 
+                    />
+                  </div>
+
+                  <div className={styles.profileNameSection}>
+                    <h2>{userProfile.userId.name}</h2>
+                    <p>@{userProfile.userId.username}</p>
+                  </div>
+
+                  {userProfile.sport && (
+                    <div className={styles.sportsBadge}>
+                      <i className={`fa-solid ${getSportIcon(userProfile.sport)}`}></i> {userProfile.sport}
                     </div>
+                  )}
 
-                    <div className={styles.actionButtons}>
-                      <button
-                        onClick={connectionStatus.canConnect ? handleConnect : undefined}
-                        className={getConnectionButtonClass()}
-                        disabled={!connectionStatus.canConnect}
+                  <div className={styles.actionButtons}>
+                    <button
+                      onClick={connectionStatus.canConnect ? handleConnect : undefined}
+                      className={getConnectionButtonClass()}
+                      disabled={!connectionStatus.canConnect}
+                    >
+                      {getConnectionButtonText()}
+                    </button>
+                    
+                    <div
+                      onClick={handleDownloadResume}
+                      className={styles.downloadBtn}
+                      title="Download Resume"
+                    >
+                      <svg
+                        style={{ width: "1.25em", height: "1.25em" }}
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="2.5"
+                        stroke="currentColor"
                       >
-                        {getConnectionButtonText()}
-                      </button>
-                      
-                      <div
-                        onClick={handleDownloadResume}
-                        className={styles.downloadBtn}
-                        title="Download Resume"
-                      >
-                        <svg
-                          style={{ width: "1.5em", height: "1.5em" }}
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth="1.5"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M7.5 7.5h-.75A2.25 2.25 0 0 0 4.5 9.75v7.5a2.25 2.25 0 0 0 2.25 2.25h7.5a2.25 2.25 0 0 0 2.25-2.25v-7.5a2.25 2.25 0 0 0-2.25-2.25h-.75m-6 3.75 3 3m0 0 3-3m-3 3V1.5m6 9h.75a2.25 2.25 0 0 1 2.25 2.25v7.5a2.25 2.25 0 0 1-2.25 2.25h-7.5a2.25 2.25 0 0 1-2.25-2.25v-.75"
-                          />
-                        </svg>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M7.5 7.5h-.75A2.25 2.25 0 0 0 4.5 9.75v7.5a2.25 2.25 0 0 0 2.25 2.25h7.5a2.25 2.25 0 0 0 2.25-2.25v-7.5a2.25 2.25 0 0 0-2.25-2.25h-.75m-6 3.75 3 3m0 0 3-3m-3 3V1.5m6 9h.75a2.25 2.25 0 0 1 2.25 2.25v7.5a2.25 2.25 0 0 1-2.25 2.25h-7.5a2.25 2.25 0 0 1-2.25-2.25v-.75"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {userProfile.bio && (
+                    <div className={styles.bioSection}>
+                      <p>"{userProfile.bio}"</p>
+                    </div>
+                  )}
+
+                  {/* Vertical Timeline for Club/Sport History */}
+                  {userProfile.pastWork && userProfile.pastWork.length > 0 && (
+                    <div className={styles.workHistory}>
+                      <h3>🏆 Club Timeline</h3>
+                      <div className={styles.workHistoryContainer}>
+                        {userProfile.pastWork.map((work, index) => (
+                          <div key={index} className={styles.workHistoryCard}>
+                            <p>Club: {work.company}</p>
+                            <p>Position: {work.position}</p>
+                            <p>Tenure: {work.years}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Side: Performance Panels */}
+                <div className={styles.performancePanels}>
+                  
+                  {/* Dynamic Stats Grid */}
+                  <div className={styles.statsGrid}>
+                    <div className={styles.statCard}>
+                      <div className={styles.statIcon}>
+                        <i className="fa-solid fa-camera"></i>
+                      </div>
+                      <div className={styles.statDetails}>
+                        <span className={styles.statNumber}>{userPosts.length}</span>
+                        <span className={styles.statLabel}>Posts</span>
                       </div>
                     </div>
 
-                    {/* Bio Section */}
-                    {userProfile.bio && (
-                      <div className={styles.bioSection}>
-                        <p>"{userProfile.bio}"</p>
+                    <div className={styles.statCard}>
+                      <div className={styles.statIcon}>
+                        <i className="fa-solid fa-user-friends"></i>
+                      </div>
+                      <div className={styles.statDetails}>
+                        <span className={styles.statNumber}>{userConnections.length}</span>
+                        <span className={styles.statLabel}>Connections</span>
+                      </div>
+                    </div>
+
+                    <div className={styles.statCard}>
+                      <div className={styles.statIcon}>
+                        <i className="fa-solid fa-shield-halved"></i>
+                      </div>
+                      <div className={styles.statDetails}>
+                        <span className={styles.statNumber}>{userTeams.length}</span>
+                        <span className={styles.statLabel}>Teams Joined</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Feed Panel containing Tabs */}
+                  <div className={styles.feedPanel}>
+                    <div className={styles.profileTabs}>
+                      <button 
+                        className={`${styles.tabBtn} ${activeTab === 'posts' ? styles.activeTab : ''}`}
+                        onClick={() => setActiveTab('posts')}
+                      >
+                        <i className="fa-solid fa-grid-2"></i> Posts
+                      </button>
+                      <button 
+                        className={`${styles.tabBtn} ${activeTab === 'teams' ? styles.activeTab : ''}`}
+                        onClick={() => setActiveTab('teams')}
+                      >
+                        <i className="fa-solid fa-shield-halved"></i> Teams
+                      </button>
+                      <button 
+                        className={`${styles.tabBtn} ${activeTab === 'connections' ? styles.activeTab : ''}`}
+                        onClick={() => setActiveTab('connections')}
+                      >
+                        <i className="fa-solid fa-user-friends"></i> Connections
+                      </button>
+                    </div>
+
+                    {/* Posts Tab Content */}
+                    {activeTab === 'posts' && (
+                      <div className={styles.postsGridSection}>
+                        {userPosts && userPosts.length > 0 ? (
+                          <div className={styles.postsGrid}>
+                            {userPosts.map((post) => (
+                              <div key={post._id} className={styles.postGridItem}>
+                                {post.media && post.media !== "" ? (
+                                  <img 
+                                    src={`${BASE_URL}/uploads/${post.media}`} 
+                                    alt={`Post by ${post.userId.username}`} 
+                                  />
+                                ) : (
+                                  <div className={styles.textPostCard}>
+                                    <p>{post.body}</p>
+                                  </div>
+                                )}
+                                <div className={styles.postGridOverlay}>
+                                  <span><i className="fa-solid fa-heart"></i> {post.likes?.length || 0}</span>
+                                  <span><i className="fa-solid fa-comment"></i> {post.comments?.length || 0}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className={styles.emptyState}>
+                            <i className="fa-solid fa-camera"></i>
+                            <p>No posts yet</p>
+                          </div>
+                        )}
                       </div>
                     )}
 
-                    {/* Stats Bar */}
-                    <div className={styles.statsBar}>
-                      <div className={styles.statItem}>
-                        <strong>{userPosts.length}</strong>
-                        <span>Posts</span>
+                    {/* Teams Tab Content */}
+                    {activeTab === 'teams' && (
+                      <div className={styles.teamsSection}>
+                        {userTeams && userTeams.length > 0 ? (
+                          <div className={styles.teamsGrid}>
+                            {userTeams.map((team) => (
+                              <div key={team._id} className={styles.teamProfileCard}>
+                                <div className={styles.teamProfileHeader}>
+                                  <i className={`fa-solid ${getSportIcon(team.sport)}`}></i>
+                                  <span className={styles.teamSportLabel}>{team.sport}</span>
+                                </div>
+                                <h4>{team.name}</h4>
+                                <p className={styles.teamDescription}>{team.description}</p>
+                                <div className={styles.teamMeta}>
+                                  <span>👥 {team.members?.length || 0} members</span>
+                                  {team.creatorId?._id === userProfile.userId._id && (
+                                    <span className={styles.ownerTag}>Owner</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className={styles.emptyState}>
+                            <i className="fa-solid fa-shield-halved"></i>
+                            <p>Not a member of any team yet</p>
+                          </div>
+                        )}
                       </div>
-                      <div className={styles.statItem}>
-                        <strong>{userConnections.length}</strong>
-                        <span>Connections</span>
-                      </div>
-                      <div className={styles.statItem}>
-                        <strong>{userTeams.length}</strong>
-                        <span>Teams</span>
-                      </div>
-                    </div>
+                    )}
 
-                    {/* Connections/Followers Section */}
-                    {connectionStatus.isConnected && (
+                    {/* Connections Tab Content */}
+                    {activeTab === 'connections' && (
                       <div className={styles.connectionsSection}>
-                        <h3>Connections ({userConnections.length})</h3>
-                        {userConnections.length > 0 ? (
+                        {userConnections && userConnections.length > 0 ? (
                           <div className={styles.connectionsGrid}>
                             {userConnections.map((conn) => (
                               <div 
@@ -309,94 +415,17 @@ export default function ViewProfilePage({userProfile}) {
                             ))}
                           </div>
                         ) : (
-                          <p className={styles.noConnections}>No connections yet.</p>
+                          <div className={styles.noConnections}>
+                            <i className="fa-solid fa-user-friends"></i>
+                            <p>No connections yet</p>
+                          </div>
                         )}
                       </div>
                     )}
                   </div>
                 </div>
-
-                {/* Tab Navigation for Posts & Teams */}
-                <div className={styles.profileTabs}>
-                  <button 
-                    className={`${styles.tabBtn} ${activeTab === 'posts' ? styles.activeTab : ''}`}
-                    onClick={() => setActiveTab('posts')}
-                  >
-                    <i className="fa-solid fa-grid-2"></i> Posts
-                  </button>
-                  <button 
-                    className={`${styles.tabBtn} ${activeTab === 'teams' ? styles.activeTab : ''}`}
-                    onClick={() => setActiveTab('teams')}
-                  >
-                    <i className="fa-solid fa-shield-halved"></i> Teams
-                  </button>
-                </div>
-
-                {/* Posts Grid (Instagram-style) */}
-                {activeTab === 'posts' && (
-                  <div className={styles.postsGridSection}>
-                    {userPosts && userPosts.length > 0 ? (
-                      <div className={styles.postsGrid}>
-                        {userPosts.map((post) => (
-                          <div key={post._id} className={styles.postGridItem}>
-                            {post.media && post.media !== "" ? (
-                              <img 
-                                src={`${BASE_URL}/uploads/${post.media}`} 
-                                alt={`Post by ${post.userId.username}`} 
-                              />
-                            ) : (
-                              <div className={styles.textPostCard}>
-                                <p>{post.body}</p>
-                              </div>
-                            )}
-                            <div className={styles.postGridOverlay}>
-                              <span><i className="fa-solid fa-heart"></i> {post.likes?.length || 0}</span>
-                              <span><i className="fa-solid fa-comment"></i> {post.comments?.length || 0}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className={styles.emptyState}>
-                        <i className="fa-solid fa-camera"></i>
-                        <p>No posts yet</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Teams Section */}
-                {activeTab === 'teams' && (
-                  <div className={styles.teamsSection}>
-                    {userTeams && userTeams.length > 0 ? (
-                      <div className={styles.teamsGrid}>
-                        {userTeams.map((team) => (
-                          <div key={team._id} className={styles.teamProfileCard}>
-                            <div className={styles.teamProfileHeader}>
-                              <i className={`fa-solid ${getSportIcon(team.sport)}`}></i>
-                              <span className={styles.teamSportLabel}>{team.sport}</span>
-                            </div>
-                            <h4>{team.name}</h4>
-                            <p className={styles.teamDescription}>{team.description}</p>
-                            <div className={styles.teamMeta}>
-                              <span>👥 {team.members?.length || 0} members</span>
-                              {team.creatorId?._id === userProfile.userId._id && (
-                                <span className={styles.ownerTag}>Owner</span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className={styles.emptyState}>
-                        <i className="fa-solid fa-shield-halved"></i>
-                        <p>Not a member of any team yet</p>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
-            </div> 
+          </div>
        </DashboardLayout>
     </UserLayout>
   )

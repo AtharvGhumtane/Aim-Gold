@@ -1,658 +1,373 @@
-/* Enhanced View Profile Page Styles - Sports Theme */
+/* Premium Athlete Profile Scouting Card Dashboard Styling */
 
 .container {
-  padding: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 1.5rem;
+  background: #f8fafc;
   min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #1e293b;
 }
 
-/* Hero Section with Profile */
+/* cover backdrop banner styling */
 .backDropContainer {
-  width: 100%;
-  max-width: 1200px;
-  height: 50vh;
-  border-radius: 24px;
-  overflow: hidden;
-  background-image: url("https://images.pexels.com/photos/6532378/pexels-photo-6532378.jpeg");
-  background-size: cover;
-  background-position: center;
   position: relative;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  margin: 0 auto 3rem auto;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  height: 200px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #c084fc 100%);
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.15);
+  margin-bottom: 2rem;
 }
 
-.backDropContainer::before {
+.backDropContainer::after {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(102, 126, 234, 0.3) 0%,
-    rgba(118, 75, 162, 0.3) 100%
-  );
-  backdrop-filter: blur(2px);
+  background: radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
 }
 
-.backDrop {
-  width: 160px;
-  height: 160px;
+/* Main Layout Grid - Scouting Card (Left) vs Performance Panels (Right) */
+.profileLayoutGrid {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* Left Scouting Card */
+.scoutingCard {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+
+/* Avatar container with neon sports ring */
+.avatarWrapper {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  padding: 4px;
+  background: linear-gradient(135deg, #4f46e5, #c084fc);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.25);
+  margin-bottom: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.avatarWrapper:hover {
+  transform: scale(1.05) rotate(5deg);
+}
+
+.profileAvatar {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  position: absolute;
-  bottom: -40px;
-  left: 3rem;
-  border: 6px solid white;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  z-index: 10;
-  transition: transform 0.3s ease;
-}
-
-.backDrop:hover {
-  transform: scale(1.05);
-}
-
-/* Sport History Section */
-.workHistory {
-  max-width: 1200px;
-  margin: 0 auto 3rem auto;
-}
-
-.workHistory h1 {
-  color: white;
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
-  text-align: center;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  position: relative;
-}
-
-.workHistory h1::after {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 4px;
-  background: linear-gradient(135deg, #ffd93d, #ff6b6b);
-  border-radius: 2px;
-}
-
-.workHistoryContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
-}
-
-.workHistoryCard {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  padding: 2rem;
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.workHistoryCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-}
-
-.workHistoryCard:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
-  border-color: rgba(102, 126, 234, 0.3);
-}
-
-.workHistoryCard p {
-  margin: 0 0 1rem 0;
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-.workHistoryCard p:first-child {
-  font-weight: 700;
-  color: #334155;
-  font-size: 1.1rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.workHistoryCard p:first-child::before {
-  content: '🏆';
-  font-size: 1.5rem;
-}
-
-.workHistoryCard p:nth-child(2) {
-  color: #64748b;
-  font-weight: 600;
-}
-
-.workHistoryCard p:nth-child(2)::before {
-  content: '⚽';
-  margin-right: 0.5rem;
-}
-
-.workHistoryCard p:last-child {
-  color: #64748b;
-  font-weight: 500;
-}
-
-.workHistoryCard p:last-child::before {
-  content: '📅';
-  margin-right: 0.5rem;
-}
-
-/* Main Profile Details */
-.profileContainer__details {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 24px;
-  padding: 3rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  position: relative;
-  overflow: hidden;
-}
-
-.profileContainer__details::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 6px;
-  background: linear-gradient(135deg, #667eea, #764ba2, #ffd93d);
-}
-
-/* Profile Header */
-.profileHeader {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 3rem;
-}
-
-.profileInfo {
-  flex: 0.7;
-  padding-left: 2rem;
+  border: 3px solid #ffffff;
 }
 
 .profileNameSection {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  width: 100%;
 }
 
 .profileNameSection h2 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #334155;
-  margin: 0;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.25rem 0;
+  letter-spacing: -0.5px;
 }
 
 .profileNameSection p {
-  font-size: 1.2rem;
+  font-size: 0.9rem;
   color: #64748b;
-  margin: 0;
   font-weight: 500;
+  margin: 0;
+}
+
+/* Sports Badge */
+.sportsBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5;
+  padding: 0.35rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 1.25rem;
 }
 
 /* Action Buttons */
 .actionButtons {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 0.75rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
 }
 
 .connectBtn {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  flex: 1;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: #ffffff;
   font-weight: 700;
-  padding: 1rem 2rem;
+  padding: 0.75rem 1.25rem;
   border: none;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
-  transition: all 0.3s ease;
+  border-radius: 12px;
+  font-size: 0.9rem;
   cursor: pointer;
-  font-size: 1rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.connectBtn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
-}
-
-.connectBtn:hover::before {
-  left: 100%;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .connectBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
 }
 
 .connectedButton {
-  background: linear-gradient(135deg, #00b894, #00a085);
-  color: white;
-  font-weight: 600;
-  padding: 1rem 2rem;
-  border-radius: 16px;
-  border: none;
-  cursor: not-allowed;
-  opacity: 0.8;
-  font-size: 1rem;
-}
-
-.downloadBtn {
-  width: 48px;
-  height: 48px;
-  background: rgba(102, 126, 234, 0.1);
-  border: 2px solid rgba(102, 126, 234, 0.2);
-  border-radius: 16px;
+  flex: 1;
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  font-weight: 700;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  cursor: default;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
+}
+
+.downloadBtn {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
   cursor: pointer;
-  transition: all 0.3s ease;
-  color: #667eea;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .downloadBtn:hover {
-  background: #667eea;
-  color: white;
-  transform: scale(1.1);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
 }
 
-/* Bio Section */
+/* Bio description container */
 .bioSection {
-  background: rgba(102, 126, 234, 0.05);
-  padding: 2rem;
-  border-radius: 16px;
-  border-left: 4px solid #667eea;
-  margin-bottom: 2rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 1rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  border-left: 3px solid #7c3aed;
+  text-align: left;
 }
 
 .bioSection p {
-  font-size: 1.1rem;
-  line-height: 1.7;
+  font-size: 0.85rem;
+  line-height: 1.5;
   color: #475569;
-  margin: 0;
   font-style: italic;
+  margin: 0;
 }
 
-/* Recent Activity Section */
-.activitySection {
-  flex: 0.3;
+/* Vertical Sports History Timeline styling */
+.workHistory {
+  width: 100%;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1.5rem;
+  text-align: left;
 }
 
-.activitySection h3 {
-  font-size: 1.5rem;
+.workHistory h3 {
+  font-size: 0.9rem;
   font-weight: 700;
-  color: #334155;
-  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  margin: 0 0 1.25rem 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.activitySection h3::before {
-  content: '📱';
-  font-size: 1.2rem;
-}
-
-.postCard {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.postCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-}
-
-.postCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-}
-
-.card {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.card__profileContainer {
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  flex-shrink: 0;
-}
-
-.card__profileContainer img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.card p {
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: #475569;
-  flex: 1;
-}
-
-/* Empty State */
-.emptyState {
-  text-align: center;
-  padding: 3rem;
-  color: #64748b;
-}
-
-.emptyState i {
-  font-size: 3rem;
-  color: #cbd5e1;
-  margin-bottom: 1rem;
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .container {
-    padding: 1.5rem;
-  }
-
-  .backDropContainer {
-    height: 40vh;
-  }
-
-  .backDrop {
-    width: 140px;
-    height: 140px;
-    left: 2rem;
-    bottom: -30px;
-  }
-
-  .profileContainer__details {
-    padding: 2rem;
-  }
-
-  .profileHeader {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .profileInfo {
-    padding-left: 0;
-  }
-
-  .profileNameSection h2 {
-    font-size: 2rem;
-  }
-
-  .workHistoryContainer {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .container {
-    padding: 1rem;
-  }
-
-  .backDropContainer {
-    height: 35vh;
-    border-radius: 16px;
-  }
-
-  .backDrop {
-    width: 120px;
-    height: 120px;
-    left: 1.5rem;
-    bottom: -25px;
-  }
-
-  .profileContainer__details {
-    padding: 1.5rem;
-    border-radius: 16px;
-  }
-
-  .profileNameSection {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .profileNameSection h2 {
-    font-size: 1.8rem;
-  }
-
-  .actionButtons {
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .connectBtn {
-    padding: 0.875rem 1.5rem;
-    font-size: 0.9rem;
-  }
-
-  .workHistory h1 {
-    font-size: 1.5rem;
-  }
-
-  .workHistoryContainer {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .workHistoryCard {
-    padding: 1.5rem;
-  }
-
-  .activitySection h3 {
-    font-size: 1.2rem;
-  }
-
-  .postCard {
-    padding: 1.25rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .profileNameSection h2 {
-    font-size: 1.5rem;
-  }
-
-  .profileNameSection p {
-    font-size: 1rem;
-  }
-
-  .backDrop {
-    width: 100px;
-    height: 100px;
-    left: 1rem;
-    bottom: -20px;
-  }
-
-  .workHistoryCard p:first-child {
-    font-size: 1rem;
-  }
-}
-
-.connectionsSection {
-  margin-top: 2rem;
-  background: white;
-  padding: 1.5rem;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-}
-
-.connectionsSection h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #334155;
-  margin-bottom: 1rem;
-}
-
-.connectionsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1rem;
-  margin-top: 0.5rem;
-}
-
-.connectionCard {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 12px;
-  background: #f8fafc;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid #f1f5f9;
-}
-
-.connectionCard:hover {
-  background: #f1f5f9;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.connectionAvatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.connectionNameInfo h4 {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #334155;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 120px;
-}
-
-.connectionNameInfo p {
-  margin: 0;
-  font-size: 0.75rem;
-  color: #64748b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 120px;
-}
-
-.noConnections {
-  color: #64748b;
-  font-size: 0.9rem;
-  text-align: center;
-}
-
-/* Stats Bar */
-.statsBar {
-  display: flex;
-  justify-content: space-around;
-  margin: 1.5rem 0;
-  padding: 1rem 0;
-  border-top: 1px solid #e2e8f0;
-  border-bottom: 1px solid #e2e8f0;
-  width: 100%;
-}
-
-.statItem {
+.workHistoryContainer {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
+  gap: 1.25rem;
+  position: relative;
+  padding-left: 1.25rem;
+  border-left: 2px solid #e2e8f0;
 }
 
-.statItem strong {
-  font-size: 1.25rem;
-  color: #1e293b;
-  font-weight: 800;
+.workHistoryCard {
+  position: relative;
 }
 
-.statItem span {
+.workHistoryCard::before {
+  content: '';
+  position: absolute;
+  left: -25px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #7c3aed;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 2px #c084fc;
+}
+
+.workHistoryCard p {
+  margin: 0 0 0.2rem 0;
   font-size: 0.8rem;
+  color: #475569;
+}
+
+.workHistoryCard p:first-child {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.85rem;
+}
+
+.workHistoryCard p:nth-child(2) {
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+.workHistoryCard p:last-child {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+/* Right Performance Panels */
+.performancePanels {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Premium dynamic stats cards */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.statCard {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+  transition: all 0.25s ease;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+}
+
+.statIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(79, 70, 229, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4f46e5;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.statCard:nth-child(2) .statIcon {
+  background: rgba(124, 58, 237, 0.08);
+  color: #7c3aed;
+}
+
+.statCard:nth-child(3) .statIcon {
+  background: rgba(192, 132, 252, 0.08);
+  color: #c084fc;
+}
+
+.statDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.statNumber {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
   color: #64748b;
-  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin-top: 0.15rem;
 }
 
-/* Profile Tabs */
+/* Tabs & Feed area */
+.feedPanel {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+  min-height: 400px;
+}
+
 .profileTabs {
   display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin: 2rem 0 1rem 0;
+  gap: 1.5rem;
   border-bottom: 2px solid #f1f5f9;
-  width: 100%;
+  margin-bottom: 1.5rem;
 }
 
 .tabBtn {
   background: none;
   border: none;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #64748b;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 0;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -675,33 +390,25 @@
   bottom: -2px;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 2.5px;
   background: #4f46e5;
-  border-radius: 2px;
+  border-radius: 99px;
 }
 
-/* Posts Grid (Instagram style) */
-.postsGridSection {
-  width: 100%;
-  margin-top: 1.5rem;
-}
-
+/* Grid of Instagram posts */
 .postsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1.25rem;
-  width: 100%;
-  padding-bottom: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
 }
 
 .postGridItem {
   position: relative;
   aspect-ratio: 1 / 1;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
   border: 1px solid #e2e8f0;
-  background: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  background: #f8fafc;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -725,12 +432,11 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  color: #334155;
-  font-size: 0.9rem;
-  font-weight: 500;
+  background: linear-gradient(135deg, #f5f7fa 0%, #cbd5e1 100%);
+  color: #1e293b;
+  font-size: 0.85rem;
+  font-weight: 600;
   line-height: 1.4;
-  overflow: hidden;
 }
 
 .postGridOverlay {
@@ -739,15 +445,15 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.7);
   opacity: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
-  color: white;
+  gap: 1.25rem;
+  color: #ffffff;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
   transition: opacity 0.25s ease;
   backdrop-filter: blur(2px);
 }
@@ -759,32 +465,33 @@
 .postGridOverlay span {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
-/* Teams Section */
-.teamsSection {
-  width: 100%;
-  margin-top: 1.5rem;
-  padding-bottom: 2rem;
+/* Squad cards grid styling */
+.teamsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
 }
 
 .teamProfileCard {
-  background: white;
-  border-radius: 16px;
+  background: #f8fafc;
+  border-radius: 14px;
   border: 1px solid #e2e8f0;
   padding: 1.25rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  transition: all 0.25s ease;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  height: 100%;
 }
 
 .teamProfileCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-  border-color: #4f46e5;
+  border-color: #cbd5e1;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
 .teamProfileHeader {
@@ -792,31 +499,32 @@
   align-items: center;
   gap: 0.5rem;
   color: #4f46e5;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .teamSportLabel {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  background: rgba(79, 70, 229, 0.1);
+  background: rgba(79, 70, 229, 0.08);
   color: #4f46e5;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
   text-transform: uppercase;
 }
 
 .teamProfileCard h4 {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #1e293b;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .teamDescription {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #64748b;
   line-height: 1.4;
+  flex-grow: 1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -827,18 +535,178 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #64748b;
-  margin-top: auto;
-  border-top: 1px solid #f1f5f9;
-  padding-top: 0.75rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 0.5rem;
 }
 
 .ownerTag {
   background: #fef3c7;
   color: #d97706;
   font-weight: 700;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+/* Connections Tab styling */
+.connectionsSection {
+  width: 100%;
+}
+
+.connectionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.85rem;
+}
+
+.connectionCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+}
+
+.connectionCard:hover {
+  background: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.connectionAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.connectionNameInfo {
+  min-width: 0;
+}
+
+.connectionNameInfo h4 {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.connectionNameInfo p {
+  margin: 0;
   font-size: 0.75rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.noConnections,
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #94a3b8;
+}
+
+.noConnections i,
+.emptyState i {
+  font-size: 2.2rem;
+  color: #cbd5e1;
+  margin-bottom: 0.75rem;
+}
+
+.noConnections p,
+.emptyState p {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Profile Missing / Error screens */
+.profileMissing {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+  width: 100%;
+}
+
+.missingCard {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 2.5rem;
+  text-align: center;
+  max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+}
+
+.missingCard i {
+  font-size: 3rem;
+  color: #f43f5e;
+  margin-bottom: 1rem;
+}
+
+.missingCard h2 {
+  font-size: 1.25rem;
+  color: #0f172a;
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+}
+
+.missingCard p {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Responsive breakdowns */
+@media (max-width: 1024px) {
+  .profileLayoutGrid {
+    grid-template-columns: 300px 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .profileLayoutGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .backDropContainer {
+    height: 140px;
+    margin-bottom: 1.5rem;
+  }
+
+  .scoutingCard {
+    padding: 1.5rem 1.25rem;
+  }
+  
+  .avatarWrapper {
+    width: 110px;
+    height: 110px;
+    margin-top: -70px; /* pull avatar up overlap backdrop container on mobile */
+    z-index: 10;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
 }
