@@ -1,62 +1,276 @@
-.userCard {
-  background: linear-gradient(135deg, #ffffff, #f0f4f8);
-  border-left: 6px solid #0066ff;
-  border-radius: 16px;
-  padding: 1.5rem 2rem;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-  margin-bottom: 1.5rem;
-  transition: transform 0.25s ease;
+/* Premium Network Dashboard Styles */
+
+.container {
+  padding: 1.5rem;
+  background: #f8fafc;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #1e293b;
 }
 
-.userCard:hover {
-  transform: translateY(-5px);
-  background: linear-gradient(135deg, #e6f0ff, #ffffff);
+/* Header styling */
+.headerSection {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 1rem;
 }
 
-.profilePicture > img {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 3px solid #0099ff;
-  object-fit: cover;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+.headerSection h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.25rem 0;
+  letter-spacing: -0.5px;
 }
 
-.userInfo h3 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #001f3f;
+.headerSection p {
+  font-size: 0.9rem;
+  color: #64748b;
   margin: 0;
+  font-weight: 500;
 }
 
-.userInfo p {
-  font-size: 0.95rem;
-  color: #5a5a5a;
-  margin: 0;
+/* Dual Panel Grid Layout */
+.networkLayoutGrid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.5rem;
+  align-items: start;
 }
 
-.connectedButton {
-  background: #00cc66;
-  color: white;
-  font-weight: bold;
-  padding: 0.5rem 1.2rem;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  box-shadow: 0 3px 10px rgba(0, 204, 102, 0.3);
-  transition: background 0.2s ease-in-out;
+/* Common Panel Styling */
+.requestsPanel,
+.membersPanel {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
 }
 
-.connectedButton:hover {
-  background: #00994d;
+.requestsPanel h2,
+.membersPanel h2 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 1.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.connectedStatus {
-  background: #e6fff5;
-  color: #007b5e;
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 0.4rem 1rem;
+.requestsPanel h2 i {
+  color: #7c3aed;
+}
+
+.membersPanel h2 i {
+  color: #4f46e5;
+}
+
+/* Pending Requests List */
+.requestsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.requestCard {
+  background: #f8fafc;
   border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.requestCard:hover {
+  background: #ffffff;
+  border-color: #7c3aed;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.08);
+}
+
+.requestAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.requestNameInfo {
+  min-width: 0;
+  flex: 1;
+}
+
+.requestNameInfo h3 {
+  margin: 0 0 0.15rem 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.requestNameInfo p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.acceptBtn {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  color: #ffffff;
+  border: none;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
+}
+
+.acceptBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+/* Connection Members Grid */
+.membersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.memberCard {
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.memberCard:hover {
+  background: #ffffff;
+  border-color: #4f46e5;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.06);
+  transform: translateY(-2px);
+}
+
+.memberAvatarWrapper {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+  margin-bottom: 1rem;
+  transition: all 0.25s ease;
+}
+
+.memberCard:hover .memberAvatarWrapper {
+  background: linear-gradient(135deg, #4f46e5, #c084fc);
+  transform: scale(1.05);
+}
+
+.memberAvatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffffff;
+}
+
+.memberNameInfo {
+  margin-bottom: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.memberNameInfo h3 {
+  margin: 0 0 0.2rem 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.memberNameInfo p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.connectedBadge {
+  background: rgba(16, 185, 129, 0.08);
+  color: #10b981;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 99px;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Clean Empty State placeholders */
+.emptyPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1rem;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  color: #94a3b8;
+}
+
+.emptyPanel i {
+  font-size: 2.2rem;
+  color: #cbd5e1;
+  margin-bottom: 0.75rem;
+}
+
+.emptyPanel p {
+  font-size: 0.85rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Responsive configurations */
+@media (max-width: 1024px) {
+  .networkLayoutGrid {
+    grid-template-columns: 280px 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .networkLayoutGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .requestsPanel {
+    order: 2;
+  }
+  
+  .membersPanel {
+    order: 1;
+  }
 }
