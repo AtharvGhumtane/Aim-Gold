@@ -96,7 +96,7 @@ export const get_comments_by_post = async (req, res) => {
 
 
 
-export const delete_comment_of_user = async (postId) => {
+export const delete_comment_of_user = async (req, res) => {
 
     const {token, comment_id } = req.body;
     try{

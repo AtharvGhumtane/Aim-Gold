@@ -16,11 +16,17 @@ import { updateUserProfile } from '../controllers/user.controller.js';
 import { getUserAndProfile } from '../controllers/user.controller.js';
 import { updateProfileData } from '../controllers/user.controller.js';
 
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const router = Router();
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/');
+        cb(null, path.join(__dirname, '../uploads'));
     },
     filename: (req, file, cb) => {
         cb(null,file.originalname)

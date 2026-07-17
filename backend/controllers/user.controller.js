@@ -10,17 +10,21 @@ import { connections } from "mongoose";
 import Post from "../models/posts.model.js";
 import Comment from "../models/comments.model.js";
 import mongoose from "mongoose"; 
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const convertUserDataTOPDF = async (userData) => {
     const doc = new PDFDocument();
 
     const outputPath = crypto.randomBytes(32).toString("hex") + ".pdf";
-    const stream  = fs.createWriteStream("uploads/"+outputPath);
+    const stream  = fs.createWriteStream(path.join(__dirname, "../uploads", outputPath));
 
     doc.pipe(stream);
 
     if (userData.profilePicture) {
-        const imagePath = path.join("uploads", userData.profilePicture);
+        const imagePath = path.join(__dirname, "../uploads", userData.profilePicture);
         if (fs.existsSync(imagePath)) {
             doc.image(imagePath, { align: "center", width: 100 });
         } else {
