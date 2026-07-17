@@ -178,6 +178,9 @@
   padding: 1rem 1.25rem;
   border-bottom: 1px solid #f1f5f9;
   background: #f8fafc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .dropdownHeader h4 {
@@ -185,6 +188,22 @@
   font-size: 1rem;
   font-weight: 600;
   color: #334155;
+}
+
+.markAllReadBtn {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.markAllReadBtn:hover {
+  color: #4f46e5;
+  text-decoration: underline;
 }
 
 .notificationItem {

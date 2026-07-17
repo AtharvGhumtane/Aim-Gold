@@ -128,8 +128,8 @@ export default function TeamsPage() {
   const handleJoinTeam = async (teamId) => {
     try {
       const token = localStorage.getItem("token");
-      await clientServer.post('/teams/join', { token, teamId });
-      showFeedback("Joined team successfully!", "success");
+      const res = await clientServer.post('/teams/join', { token, teamId });
+      showFeedback(res.data.message || "Joined team successfully!", "success");
       fetchTeams();
     } catch (error) {
       showFeedback(error.response?.data?.message || "Failed to join team", "error");

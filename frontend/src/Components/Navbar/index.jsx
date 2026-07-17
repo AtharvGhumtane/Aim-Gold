@@ -38,18 +38,17 @@ export default function NavbarComponent() {
     }
   }, [authState.profileFetched, authState.user]);
 
-  const handleToggleNotifications = async () => {
-    const nextState = !isNotificationsOpen;
-    setIsNotificationsOpen(nextState);
-    if (nextState && unreadCount > 0) {
-      try {
-        const token = localStorage.getItem("token");
-        await clientServer.post('/user/notifications/mark_read', { token });
-        setUnreadCount(0);
-        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-      } catch (error) {
-        console.error("Failed to mark notifications as read:", error);
-      }
+  const handleToggleNotifications = () => {
+    setIsNotificationsOpen(!isNotificationsOpen);
+  };
+
+  const handleMarkRead = async (notificationId) => {
+    try {
+      const token = localStorage.getItem("token");
+      await clientServer.post('/user/notifications/mark_read', { token, notificationId });
+      fetchNotifications();
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
     }
   };
 
@@ -145,10 +144,31 @@ export default function NavbarComponent() {
                   <div className={styles.notificationDropdown}>
                     <div className={styles.dropdownHeader}>
                       <h4>Notifications</h4>
+                      {unreadCount > 0 && (
+                        <button 
+                          className={styles.markAllReadBtn}
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              const token = localStorage.getItem("token");
+                              await clientServer.post('/user/notifications/mark_read', { token });
+                              fetchNotifications();
+                            } catch (err) {
+                              console.error("Failed to mark all as read:", err);
+                            }
+                          }}
+                        >
+                          Mark all as read
+                        </button>
+                      )}
                     </div>
                     {notifications.length > 0 ? (
                       notifications.slice(0, 5).map((noti) => (
-                        <div key={noti._id} className={`${styles.notificationItem} ${!noti.isRead ? styles.unreadItem : ''}`}>
+                        <div 
+                          key={noti._id} 
+                          className={`${styles.notificationItem} ${!noti.isRead ? styles.unreadItem : ''}`}
+                          onClick={() => !noti.isRead && handleMarkRead(noti._id)}
+                        >
                           <i className={
                             noti.type === 'connection_request' ? 'fa-solid fa-user-plus' :
                             noti.type === 'team_invite' ? 'fa-solid fa-users-gear' :
@@ -264,7 +284,7 @@ export default function NavbarComponent() {
                                         requestId: noti.relatedId,
                                         action_type: "accept"
                                       });
-                                      fetchNotifications();
+                                      await handleMarkRead(noti._id);
                                       if (router.pathname === '/my_connections') {
                                         router.replace(router.asPath);
                                       }
@@ -286,7 +306,7 @@ export default function NavbarComponent() {
                                         requestId: noti.relatedId,
                                         action_type: "reject"
                                       });
-                                      fetchNotifications();
+                                      await handleMarkRead(noti._id);
                                       if (router.pathname === '/my_connections') {
                                         router.replace(router.asPath);
                                       }
