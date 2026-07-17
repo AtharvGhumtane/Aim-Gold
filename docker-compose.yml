@@ -1,4 +1,11 @@
 services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
   backend:
     build:
       context: ./backend
@@ -9,8 +16,14 @@ services:
       - ./backend:/app
       - /app/node_modules
       - ./backend/uploads:/app/uploads
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     environment:
       - NODE_ENV=development
+      - MONGO_URI=mongodb://mongodb:27017/aim-gold
+    depends_on:
+      - mongodb
 
   frontend:
     build:
@@ -26,3 +39,6 @@ services:
       - NODE_ENV=development
     depends_on:
       - backend
+
+volumes:
+  mongo-data:

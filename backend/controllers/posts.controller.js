@@ -4,7 +4,7 @@ import Profile from "../models/profile.model.js";
 
 import User from "../models/user.model.js";
 
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 import Comment from "../models/comments.model.js"; 
 

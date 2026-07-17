@@ -4,7 +4,7 @@ import ConnectionRequest from "../models/connections.model.js";
 import crypto from "crypto";
 import path from "path";
 import PDFDocument from "pdfkit";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import fs from "fs";
 import { connections } from "mongoose";
 import Post from "../models/posts.model.js";
