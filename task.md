@@ -28,11 +28,11 @@
 - [x] Test squad chat messaging
 
 ## Phase 2: ObjectID and Notification Fixes
-- [ ] Fix ObjectID reference comparisons in `team.controller.js` (`joinTeam`, `acceptJoinRequest`, `leaveTeam`, `inviteToTeam`, `acceptTeamInvite`)
-- [ ] Add `"like"` and `"team_message"` types to Notification enum
-- [ ] Trigger notification on Post Liked in `posts.controller.js`
-- [ ] Trigger notification on Connection Request Accepted in `user.controller.js`
-- [ ] Trigger notification on Team Message Sent to all other squad members in `teamMessage.controller.js`
-- [ ] Implement Accept/Reject buttons for `connection_request` inside Navbar Notification dropdown
-- [ ] Map icons for `"like"` and `"team_message"` notifications in Navbar
-- [ ] Update and execute automated integration tests `test_all_features.js` to verify all Phase 2 fixes
+- [x] Fix ObjectID reference comparisons in `team.controller.js` (`joinTeam`, `acceptJoinRequest`, `leaveTeam`, `inviteToTeam`, `acceptTeamInvite`)
+- [x] Add `"like"` and `"team_message"` types to Notification enum
+- [x] Trigger notification on Post Liked in `posts.controller.js`
+- [x] Trigger notification on Connection Request Accepted in `user.controller.js`
+- [x] Trigger notification on Team Message Sent to all other squad members in `teamMessage.controller.js`
+- [x] Implement Accept/Reject buttons for `connection_request` inside Navbar Notification dropdown
+- [x] Map icons for `"like"` and `"team_message"` notifications in Navbar
+- [x] Update and execute automated integration tests `test_all_features.js` to verify all Phase 2 fixes
