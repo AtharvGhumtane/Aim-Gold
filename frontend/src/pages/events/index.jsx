@@ -77,12 +77,11 @@ export default function EventsPage() {
         sports: JSON.stringify(createForm.sports),
       };
       const res = await clientServer.post('/events', payload);
-      setCreateMsg(`✅ Event created! Key: ${res.data.eventKey}`);
+      // BUG FIX 1: redirect host straight to their event page
       setShowCreate(false);
-      fetchEvents();
+      router.push(`/events/${res.data.event._id}`);
     } catch (err) {
       setCreateMsg('❌ ' + (err.response?.data?.message || err.message));
-    } finally {
       setCreateLoading(false);
     }
   };
