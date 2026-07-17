@@ -343,7 +343,7 @@ export const updateMatchScore = async (req, res) => {
     const user = await resolveUser(req);
     if (!user) return res.status(401).json({ message: "Unauthorized" });
 
-    const { homeScore, awayScore, status } = req.body;
+    const { homeScore, awayScore, status, period, scoreDetails } = req.body;
 
     try {
         const event = await SportEvent.findById(req.params.eventId);
@@ -355,9 +355,18 @@ export const updateMatchScore = async (req, res) => {
         const match = await EventMatch.findById(req.params.matchId);
         if (!match) return res.status(404).json({ message: "Match not found" });
 
+        // Update canonical scores
         if (homeScore !== undefined) match.homeScore = Number(homeScore);
         if (awayScore !== undefined) match.awayScore = Number(awayScore);
         if (status)                  match.status    = status;
+        if (period  !== undefined)   match.period    = period;
+
+        // Merge sport-specific details (don't wipe existing data on partial updates)
+        if (scoreDetails && typeof scoreDetails === "object") {
+            match.scoreDetails = { ...(match.scoreDetails || {}), ...scoreDetails };
+            // Mongoose Mixed fields need this to detect the change
+            match.markModified("scoreDetails");
+        }
 
         // Set winner when completed
         if (status === "completed") {

@@ -176,7 +176,7 @@ export const updateUserProfile = async (req, res) => {
 
 export const getUserAndProfile = async (req, res) => {
     try{
-        const { token } = req.query;
+        const token = req.headers["x-auth-token"] || req.query.token || req.body?.token;
 
         console.log(`Token:${token}`)
 
@@ -295,7 +295,7 @@ export const sendConnectionRequest = async (req, res) => {
 // Fixed getMyConnectionRequests function - corrected variable name
 // ✅ Get connection requests I SENT (outgoing)
 export const getMyConnectionRequests = async (req, res) => {
-    const { token } = req.query;
+    const token = req.headers["x-auth-token"] || req.query.token || req.body?.token;
 
     try{
         const user = await User.findOne({ token });
@@ -315,7 +315,7 @@ export const getMyConnectionRequests = async (req, res) => {
 
 // ✅ Get connection requests I RECEIVED (incoming) - for accepting/rejecting
 export const whatAreMyConnections = async (req, res) => {
-    const { token } = req.query;
+    const token = req.headers["x-auth-token"] || req.query.token || req.body?.token;
 
     try{
         const user = await User.findOne({token});
@@ -449,7 +449,7 @@ export const getUserProfileAndUserBasedOnUsername = async (req,res) => {
 }
 
 export const getNotifications = async (req, res) => {
-    const { token } = req.query;
+    const token = req.headers["x-auth-token"] || req.query.token || req.body?.token;
 
     try {
         const user = await User.findOne({ token });
@@ -569,7 +569,7 @@ export const getTrendingAthletes = async (req, res) => {
 };
 
 export const getUserStats = async (req, res) => {
-    const { token } = req.query;
+    const token = req.headers["x-auth-token"] || req.query.token || req.body?.token;
 
     try {
         const user = await User.findOne({ token });

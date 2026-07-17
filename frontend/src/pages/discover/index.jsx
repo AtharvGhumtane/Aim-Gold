@@ -1,7 +1,7 @@
 import UserLayout from '@/layout/UserLayout';
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/layout/DashboardLayout';
-import { getAllUsers } from '@/config/redux/action/authAction';
+import { getAllUsers, getAboutUser } from '@/config/redux/action/authAction';
 import { useDispatch, useSelector } from 'react-redux';
 import { BASE_URL } from '@/config';
 import styles from "./index.module.css";
@@ -17,10 +17,18 @@ export default function Discoverpage() {
     if (!authState.all_profiles_fetched) {
       dispatch(getAllUsers());
     }
+    if (!authState.user) {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+      if (token) {
+        dispatch(getAboutUser({ token }));
+      }
+    }
   }, []);
 
   const filteredUsers = authState.all_users?.filter(user => {
-    const isSelf = user.userId?._id === authState.user?.userId?._id;
+    const selfId = authState.user?.userId?._id;
+    const selfUsername = authState.user?.userId?.username;
+    const isSelf = (selfId && user.userId?._id === selfId) || (selfUsername && user.userId?.username === selfUsername);
     if (isSelf) return false;
 
     return (

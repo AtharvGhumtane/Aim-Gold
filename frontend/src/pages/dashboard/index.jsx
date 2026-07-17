@@ -18,10 +18,12 @@ export default function Dashboard() {
   const postState = useSelector((state) => state.posts);
 
   const [postContent, setPostContent] = useState("");
-  const [fileContent, setFileContent] = useState();
+  const [fileContent, setFileContent] = useState(null);
   const [commentText, setCommentText] = useState("")
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [lastCommentSubmitted, setLastCommentSubmitted] = useState("");
+
+  const fileInputRef = React.useRef(null);
 
   useEffect(() => {
     if (authState.isTokenThere) {
@@ -38,6 +40,9 @@ export default function Dashboard() {
     await dispatch(createPost({ file: fileContent, body: postContent }));
     setPostContent("");
     setFileContent(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
     dispatch(getAllPosts());
   };
 
@@ -129,21 +134,30 @@ export default function Dashboard() {
             </div>
 
             <div className={styles.bottomSection}>
-              <label htmlFor="fileUpload" className={styles.uploadLabel}>
-                <div className={styles.uploadIcon}>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    strokeWidth="1.5" stroke="currentColor" className={styles.icon}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                  </svg>
-                  <span>Add Photo</span>
-                </div>
-              </label>
-              <input onChange={(e) => setFileContent(e.target.files[0])} type="file" hidden id="fileUpload" />
-              {postContent.length > 0 && (
+              <div className={styles.uploadRow}>
+                <label htmlFor="fileUpload" className={styles.uploadLabel}>
+                  <div className={styles.uploadIcon}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                      strokeWidth="1.5" stroke="currentColor" className={styles.icon}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    <span>Add Photo</span>
+                  </div>
+                </label>
+                {fileContent && (
+                  <span className={styles.fileSelectedFeedback}>
+                    📎 {fileContent.name}
+                    <button type="button" onClick={() => { setFileContent(null); if (fileInputRef.current) fileInputRef.current.value = ""; }} className={styles.clearFileBtn}>✕</button>
+                  </span>
+                )}
+              </div>
+              <input ref={fileInputRef} onChange={(e) => setFileContent(e.target.files[0])} type="file" hidden id="fileUpload" accept="image/*" />
+              {(postContent.trim().length > 0 || fileContent) && (
                 <button onClick={handleUpload} className={styles.postBtn}>Post</button>
               )}
             </div>
           </div>
+
 
           <div className={styles.postFeed}>
             {postState.posts.map((post) => {

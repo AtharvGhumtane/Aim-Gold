@@ -4,9 +4,24 @@ import { clientServer, BASE_URL } from '@/config';
 import { useRouter } from 'next/router';
 import styles from './index.module.css';
 
-const TABS = ['Matches', 'Bracket', 'Standings', 'Players', 'Calendar', 'Photos'];
-const ROUND_OPTIONS = ['Group Stage', 'Round of 16', 'Quarter Final', 'Semi Final', 'Final'];
+const TABS           = ['Matches', 'Bracket', 'Standings', 'Players', 'Calendar', 'Photos'];
+const ROUND_OPTIONS  = ['Group Stage', 'Round of 16', 'Quarter Final', 'Semi Final', 'Final'];
 const KNOCKOUT_ROUNDS = ['Round of 16', 'Quarter Final', 'Semi Final', 'Final'];
+
+const FOOTBALL_PERIODS   = ['1st Half', 'Half Time', '2nd Half', 'Full Time', 'Extra Time', 'Penalties'];
+const BASKETBALL_PERIODS = ['Q1', 'Q2', 'Q3', 'Q4', 'OT'];
+const CRICKET_INNINGS    = ['1st Innings', 'Innings Break', '2nd Innings', 'Match Complete'];
+
+/** Detect sport category from a free-text sport name */
+function getSportCat(sport) {
+  if (!sport) return 'generic';
+  const s = sport.toLowerCase();
+  if (s.includes('cricket'))                                            return 'cricket';
+  if (s.includes('basketball'))                                         return 'basketball';
+  if (['badminton','tennis','table tennis','volleyball'].some(x => s.includes(x))) return 'sets';
+  if (['football','hockey','futsal','soccer'].some(x => s.includes(x))) return 'football';
+  return 'generic';
+}
 
 export default function EventDetailPage() {
   const router = useRouter();
@@ -148,25 +163,43 @@ export default function EventDetailPage() {
     }
   };
 
-  // ── Update score ──────────────────────────────────────────────────────────────
-  // BUG FIX 2: always send actual score values (fall back to match's current score)
+  // ── Update score (sport-aware) ────────────────────────────────────────────────
   const handleScoreUpdate = async (matchId, status) => {
     const match = matches.find(m => m._id === matchId);
     if (!match) return;
-    const edit = scoreEdits[matchId] || {};
-    const token = getToken();
+    const edit      = scoreEdits[matchId] || {};
+    const editSD    = edit.scoreDetails || {};
+    const matchSD   = match.scoreDetails || {};
+    const token     = getToken();
+    const cat       = getSportCat(match.sport);
+    const period    = edit.period !== undefined ? edit.period : (match.period || '');
 
-    const homeScore = edit.homeScore !== undefined && edit.homeScore !== ''
-      ? Number(edit.homeScore)
-      : match.homeScore;
-    const awayScore = edit.awayScore !== undefined && edit.awayScore !== ''
-      ? Number(edit.awayScore)
-      : match.awayScore;
+    let homeScore, awayScore, scoreDetails;
+
+    if (cat === 'basketball') {
+      // Total = sum of all quarter points
+      const quarters = editSD.quarters || matchSD.quarters
+        || [{ home: 0, away: 0 }, { home: 0, away: 0 }, { home: 0, away: 0 }, { home: 0, away: 0 }];
+      homeScore    = quarters.reduce((s, q) => s + (Number(q.home) || 0), 0);
+      awayScore    = quarters.reduce((s, q) => s + (Number(q.away) || 0), 0);
+      scoreDetails = { ...matchSD, ...editSD, quarters };
+    } else if (cat === 'sets') {
+      // Total = sets won
+      const sets = editSD.sets || matchSD.sets || [{ home: 0, away: 0 }];
+      homeScore    = sets.filter(s => Number(s.home) > Number(s.away)).length;
+      awayScore    = sets.filter(s => Number(s.away) > Number(s.home)).length;
+      scoreDetails = { ...matchSD, ...editSD, sets };
+    } else {
+      // Football / Cricket / Generic — direct numeric inputs
+      homeScore    = edit.homeScore !== undefined && edit.homeScore !== '' ? Number(edit.homeScore) : match.homeScore;
+      awayScore    = edit.awayScore !== undefined && edit.awayScore !== '' ? Number(edit.awayScore) : match.awayScore;
+      scoreDetails = { ...matchSD, ...editSD };
+    }
 
     setScoreMsg(prev => ({ ...prev, [matchId]: '' }));
     try {
-      const res = await clientServer.post(`/events/${eventId}/matches/${matchId}/score`, {
-        token, homeScore, awayScore, status: status || 'live',
+      await clientServer.post(`/events/${eventId}/matches/${matchId}/score`, {
+        token, homeScore, awayScore, status: status || 'live', period, scoreDetails,
       });
       setScoreMsg(prev => ({
         ...prev,
@@ -174,7 +207,7 @@ export default function EventDetailPage() {
       }));
       setScoreEdits(prev => { const n = { ...prev }; delete n[matchId]; return n; });
       fetchMatches();
-      fetchEvent(); // refresh standings
+      fetchEvent();
     } catch (err) {
       setScoreMsg(prev => ({
         ...prev,
@@ -767,28 +800,203 @@ export default function EventDetailPage() {
   );
 }
 
-// ── MatchCard sub-component ────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// MATCHCARD — sport-aware display + host editing
+// ══════════════════════════════════════════════════════════════════════════════
+
 function MatchCard({ m, isHost, scoreEdits, setScoreEdits, handleScoreUpdate, scoreMsg, fmtDT }) {
-  const edit = scoreEdits[m._id] || {};
-
-  // BUG FIX 2: displayed score value always falls back to current match score
-  const homeVal = edit.homeScore !== undefined ? edit.homeScore : m.homeScore;
-  const awayVal = edit.awayScore !== undefined ? edit.awayScore : m.awayScore;
-
-  const statusColor = { scheduled: '#64748b', live: '#22c55e', completed: '#f59e0b' };
+  const cat    = getSportCat(m.sport);
+  const edit   = scoreEdits[m._id] || {};
+  const editSD = edit.scoreDetails || {};
+  const matchSD = m.scoreDetails || {};
   const isLive = m.status === 'live';
+  const isDone = m.status === 'completed';
+
+  // Helpers to write into scoreEdits
+  const setField = (key, val) =>
+    setScoreEdits(prev => ({ ...prev, [m._id]: { ...prev[m._id], [key]: val } }));
+  const setSD = (key, val) =>
+    setScoreEdits(prev => ({
+      ...prev,
+      [m._id]: { ...prev[m._id], scoreDetails: { ...(prev[m._id]?.scoreDetails || {}), [key]: val } }
+    }));
+
+  // Basketball: get quarters from edit or match (default 4 empty quarters)
+  const quarters = editSD.quarters || matchSD.quarters
+    || [{ home: 0, away: 0 }, { home: 0, away: 0 }, { home: 0, away: 0 }, { home: 0, away: 0 }];
+  const setQuarter = (idx, side, val) => {
+    const q = quarters.map((x, i) => i === idx ? { ...x, [side]: val } : x);
+    setSD('quarters', q);
+  };
+
+  // Sets sports: get sets from edit or match (default 1 empty set)
+  const sets = editSD.sets || matchSD.sets || [{ home: 0, away: 0 }];
+  const setSet = (idx, side, val) => {
+    const s = sets.map((x, i) => i === idx ? { ...x, [side]: val } : x);
+    setSD('sets', s);
+  };
+  const addSet = () => setSD('sets', [...sets, { home: 0, away: 0 }]);
+
+  const STATUS_COLOR = { scheduled: '#64748b', live: '#22c55e', completed: '#f59e0b' };
+  const statusLabel  = isLive ? '🔴 LIVE' : isDone ? '✅ FT' : '🕐 Scheduled';
+  const curPeriod    = edit.period !== undefined ? edit.period : (m.period || '');
 
   return (
     <div className={`${styles.matchCard} ${isLive ? styles.matchCardLive : ''}`}>
+
+      {/* ── Header ── */}
       <div className={styles.matchTop}>
         <span className={styles.matchRound}>{m.round}</span>
-        <span className={styles.matchStatus} style={{ color: statusColor[m.status] || '#64748b' }}>
-          {isLive ? '🔴 LIVE' : m.status === 'completed' ? '✅ FT' : '🕐 Scheduled'}
-        </span>
+        <span className={styles.matchStatus} style={{ color: STATUS_COLOR[m.status] }}>{statusLabel}</span>
+        {curPeriod && <span className={styles.periodPill}>{curPeriod}</span>}
         {m.matchDate && <span className={styles.matchDate}>{fmtDT(m.matchDate)}</span>}
         {m.venue && <span className={styles.matchVenue}>📍 {m.venue}</span>}
       </div>
 
+      {/* ── Score body ── */}
+      {m.status === 'scheduled' ? (
+        <div className={styles.scheduledBody}>
+          <span className={styles.teamDot} style={{ background: m.homeTeam?.color }} />
+          <span className={styles.matchTeamName}>{m.homeTeam?.name}</span>
+          <span className={styles.vsText}>VS</span>
+          <span className={styles.matchTeamName}>{m.awayTeam?.name}</span>
+          <span className={styles.teamDot} style={{ background: m.awayTeam?.color }} />
+        </div>
+      ) : cat === 'cricket' ? (
+        <CricketDisplay m={m} />
+      ) : cat === 'basketball' ? (
+        <BasketballDisplay m={m} />
+      ) : cat === 'sets' ? (
+        <SetsDisplay m={m} />
+      ) : (
+        /* Football / Generic */
+        <FootballDisplay m={m} isLive={isLive} />
+      )}
+
+      {/* ── Host score update panel ── */}
+      {isHost && !isDone && (
+        <div className={styles.scoreUpdatePanel}>
+          {cat === 'football' && (
+            <FootballEditor m={m} edit={edit} editSD={editSD} matchSD={matchSD}
+              curPeriod={curPeriod} setField={setField} setSD={setSD}
+              handleScoreUpdate={handleScoreUpdate} scoreMsg={scoreMsg} />
+          )}
+          {cat === 'cricket' && (
+            <CricketEditor m={m} edit={edit} editSD={editSD} matchSD={matchSD}
+              setField={setField} setSD={setSD}
+              handleScoreUpdate={handleScoreUpdate} scoreMsg={scoreMsg} />
+          )}
+          {cat === 'basketball' && (
+            <BasketballEditor m={m} edit={edit} editSD={editSD} matchSD={matchSD}
+              quarters={quarters} curPeriod={curPeriod}
+              setField={setField} setQuarter={setQuarter}
+              handleScoreUpdate={handleScoreUpdate} scoreMsg={scoreMsg} />
+          )}
+          {cat === 'sets' && (
+            <SetsEditor m={m} sets={sets}
+              setSet={setSet} addSet={addSet}
+              handleScoreUpdate={handleScoreUpdate} scoreMsg={scoreMsg} />
+          )}
+          {cat === 'generic' && (
+            <GenericEditor m={m} edit={edit}
+              setField={setField}
+              handleScoreUpdate={handleScoreUpdate} scoreMsg={scoreMsg} />
+          )}
+        </div>
+      )}
+
+      {/* ── Winner banner ── */}
+      {isDone && m.winner && (
+        <div className={styles.winnerBanner}>
+          🏆 {m.winner === 'draw' ? 'Match drawn' : `Winner: ${m.winner}`}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Sport Score Displays (read-only) ──────────────────────────────────────────
+
+function FootballDisplay({ m, isLive }) {
+  const sd = m.scoreDetails || {};
+  return (
+    <div className={styles.matchBody}>
+      <div className={styles.matchTeam}>
+        <span className={styles.teamDot} style={{ background: m.homeTeam?.color }} />
+        <span className={`${styles.matchTeamName} ${m.winner === m.homeTeam?.name ? styles.winnerName : ''}`}>
+          {m.homeTeam?.name}
+        </span>
+      </div>
+      <div className={styles.scoreDisplay}>
+        <span className={`${styles.scoreText} ${isLive ? styles.scoreTextLive : ''}`}>
+          {m.homeScore} — {m.awayScore}
+        </span>
+        {sd.htHomeScore !== undefined && (
+          <div className={styles.htBadge}>HT {sd.htHomeScore}–{sd.htAwayScore}</div>
+        )}
+      </div>
+      <div className={`${styles.matchTeam} ${styles.matchTeamRight}`}>
+        <span className={`${styles.matchTeamName} ${m.winner === m.awayTeam?.name ? styles.winnerName : ''}`}>
+          {m.awayTeam?.name}
+        </span>
+        <span className={styles.teamDot} style={{ background: m.awayTeam?.color }} />
+      </div>
+    </div>
+  );
+}
+
+function CricketDisplay({ m }) {
+  const sd = m.scoreDetails || {};
+  const homeBatting = sd.battingTeam === 'home';
+  const awayBatting = sd.battingTeam === 'away';
+  return (
+    <div className={styles.cricketDisplay}>
+      {sd.innings && <span className={styles.inningsBadge}>{sd.innings}</span>}
+      <div className={styles.cricketRow}>
+        <div className={styles.cricketTeamInfo}>
+          <span className={styles.teamDot} style={{ background: m.homeTeam?.color }} />
+          <span className={`${styles.matchTeamName} ${m.winner === m.homeTeam?.name ? styles.winnerName : ''}`}>
+            {m.homeTeam?.name}
+          </span>
+          {homeBatting && <span className={styles.battingPill}>🏏 Batting</span>}
+        </div>
+        <span className={styles.cricketRuns}>
+          {m.homeScore}/{sd.homeWickets ?? 0}
+          {sd.homeOvers ? <small> ({sd.homeOvers} ov)</small> : ''}
+        </span>
+      </div>
+      <div className={styles.cricketRow}>
+        <div className={styles.cricketTeamInfo}>
+          <span className={styles.teamDot} style={{ background: m.awayTeam?.color }} />
+          <span className={`${styles.matchTeamName} ${m.winner === m.awayTeam?.name ? styles.winnerName : ''}`}>
+            {m.awayTeam?.name}
+          </span>
+          {awayBatting && <span className={styles.battingPill}>🏏 Batting</span>}
+        </div>
+        <span className={styles.cricketRuns}>
+          {m.awayScore}/{sd.awayWickets ?? 0}
+          {sd.awayOvers ? <small> ({sd.awayOvers} ov)</small> : ''}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function BasketballDisplay({ m }) {
+  const sd = m.scoreDetails || {};
+  const qs = sd.quarters || [];
+  return (
+    <div className={styles.basketballDisplay}>
+      {qs.length > 0 && (
+        <div className={styles.quartersRow}>
+          {qs.map((q, i) => (
+            <div key={i} className={styles.qtrCell}>
+              <span className={styles.qtrLabel}>Q{i + 1}</span>
+              <span className={styles.qtrScore}>{q.home}–{q.away}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <div className={styles.matchBody}>
         <div className={styles.matchTeam}>
           <span className={styles.teamDot} style={{ background: m.homeTeam?.color }} />
@@ -796,17 +1004,11 @@ function MatchCard({ m, isHost, scoreEdits, setScoreEdits, handleScoreUpdate, sc
             {m.homeTeam?.name}
           </span>
         </div>
-
         <div className={styles.scoreDisplay}>
-          {m.status === 'scheduled' ? (
-            <span className={styles.vsText}>VS</span>
-          ) : (
-            <span className={`${styles.scoreText} ${isLive ? styles.scoreTextLive : ''}`}>
-              {m.homeScore} — {m.awayScore}
-            </span>
-          )}
+          <span className={`${styles.scoreText} ${m.status === 'live' ? styles.scoreTextLive : ''}`}>
+            {m.homeScore} — {m.awayScore}
+          </span>
         </div>
-
         <div className={`${styles.matchTeam} ${styles.matchTeamRight}`}>
           <span className={`${styles.matchTeamName} ${m.winner === m.awayTeam?.name ? styles.winnerName : ''}`}>
             {m.awayTeam?.name}
@@ -814,53 +1016,270 @@ function MatchCard({ m, isHost, scoreEdits, setScoreEdits, handleScoreUpdate, sc
           <span className={styles.teamDot} style={{ background: m.awayTeam?.color }} />
         </div>
       </div>
-
-      {/* ── HOST score update panel (BUG FIX 2: pre-filled inputs) ── */}
-      {isHost && m.status !== 'completed' && (
-        <div className={styles.scoreUpdatePanel}>
-          <div className={styles.scoreUpdateLabel}>Update Score:</div>
-          <div className={styles.scoreInputRow}>
-            <div className={styles.scoreInputGroup}>
-              <span className={styles.scoreInputTeam}>{m.homeTeam?.name}</span>
-              <input
-                type="number" min={0}
-                value={homeVal}
-                onChange={e => setScoreEdits(prev => ({
-                  ...prev,
-                  [m._id]: { ...prev[m._id], homeScore: e.target.value }
-                }))}
-              />
-            </div>
-            <span className={styles.scoreSep}>:</span>
-            <div className={styles.scoreInputGroup}>
-              <span className={styles.scoreInputTeam}>{m.awayTeam?.name}</span>
-              <input
-                type="number" min={0}
-                value={awayVal}
-                onChange={e => setScoreEdits(prev => ({
-                  ...prev,
-                  [m._id]: { ...prev[m._id], awayScore: e.target.value }
-                }))}
-              />
-            </div>
-          </div>
-          <div className={styles.scoreUpdateBtns}>
-            <button className={styles.liveBtn} onClick={() => handleScoreUpdate(m._id, 'live')}>
-              🔴 Update Live
-            </button>
-            <button className={styles.ftBtn} onClick={() => handleScoreUpdate(m._id, 'completed')}>
-              ✅ Full Time
-            </button>
-          </div>
-          {scoreMsg && <p className={styles.scoreFeedback}>{scoreMsg}</p>}
-        </div>
-      )}
-
-      {m.status === 'completed' && m.winner && (
-        <div className={styles.winnerBanner}>
-          🏆 Winner: <strong>{m.winner === 'draw' ? 'Draw' : m.winner}</strong>
-        </div>
-      )}
     </div>
+  );
+}
+
+function SetsDisplay({ m }) {
+  const sd = m.scoreDetails || {};
+  const sets = sd.sets || [];
+  return (
+    <div className={styles.setsDisplay}>
+      <div className={styles.setsHeader}>
+        <span className={styles.matchTeamName}>{m.homeTeam?.name}</span>
+        <div className={styles.setsCells}>
+          {sets.map((s, i) => {
+            const hw = Number(s.home) > Number(s.away);
+            const aw = Number(s.away) > Number(s.home);
+            return (
+              <div key={i} className={styles.setCell}>
+                <span className={hw ? styles.setWon : styles.setLost}>{s.home}</span>
+                <span className={styles.setDash}>–</span>
+                <span className={aw ? styles.setWon : styles.setLost}>{s.away}</span>
+              </div>
+            );
+          })}
+        </div>
+        <span className={styles.matchTeamName}>{m.awayTeam?.name}</span>
+      </div>
+      <div className={styles.setsTotals}>
+        Sets won:
+        <strong className={m.winner === m.homeTeam?.name ? styles.winnerName : ''}> {m.homeScore}</strong>
+        {' — '}
+        <strong className={m.winner === m.awayTeam?.name ? styles.winnerName : ''}>{m.awayScore}</strong>
+      </div>
+    </div>
+  );
+}
+
+// ── Sport Score Editors (host-only) ──────────────────────────────────────────
+
+function EditorBtns({ matchId, handleScoreUpdate, scoreMsg, completeLabel = '✅ Full Time' }) {
+  return (
+    <>
+      <div className={styles.scoreUpdateBtns}>
+        <button className={styles.liveBtn} onClick={() => handleScoreUpdate(matchId, 'live')}>🔴 Update Live</button>
+        <button className={styles.ftBtn}   onClick={() => handleScoreUpdate(matchId, 'completed')}>{completeLabel}</button>
+      </div>
+      {scoreMsg && <p className={styles.scoreFeedback}>{scoreMsg}</p>}
+    </>
+  );
+}
+
+function FootballEditor({ m, edit, editSD, matchSD, curPeriod, setField, setSD, handleScoreUpdate, scoreMsg }) {
+  return (
+    <>
+      <div className={styles.scoreUpdateLabel}>Update Football Score</div>
+      <div className={styles.editorRow}>
+        <span className={styles.editorRowLabel}>Period:</span>
+        <select className={styles.periodSelect}
+          value={curPeriod}
+          onChange={e => setField('period', e.target.value)}>
+          <option value=''>— select —</option>
+          {FOOTBALL_PERIODS.map(p => <option key={p}>{p}</option>)}
+        </select>
+      </div>
+      <div className={styles.scoreInputRow}>
+        <div className={styles.scoreInputGroup}>
+          <span className={styles.scoreInputTeam}>{m.homeTeam?.name}</span>
+          <input type='number' min={0}
+            value={edit.homeScore !== undefined ? edit.homeScore : m.homeScore}
+            onChange={e => setField('homeScore', e.target.value)} />
+        </div>
+        <span className={styles.scoreSep}>:</span>
+        <div className={styles.scoreInputGroup}>
+          <span className={styles.scoreInputTeam}>{m.awayTeam?.name}</span>
+          <input type='number' min={0}
+            value={edit.awayScore !== undefined ? edit.awayScore : m.awayScore}
+            onChange={e => setField('awayScore', e.target.value)} />
+        </div>
+      </div>
+      <div className={styles.editorRow}>
+        <span className={styles.editorRowLabel}>Half-Time (opt.):</span>
+        <div className={styles.htInputs}>
+          <input type='number' min={0} placeholder='HT Home' className={styles.htInput}
+            value={editSD.htHomeScore ?? (matchSD.htHomeScore ?? '')}
+            onChange={e => setSD('htHomeScore', e.target.value)} />
+          <span>—</span>
+          <input type='number' min={0} placeholder='HT Away' className={styles.htInput}
+            value={editSD.htAwayScore ?? (matchSD.htAwayScore ?? '')}
+            onChange={e => setSD('htAwayScore', e.target.value)} />
+        </div>
+      </div>
+      <EditorBtns matchId={m._id} handleScoreUpdate={handleScoreUpdate} scoreMsg={scoreMsg} />
+    </>
+  );
+}
+
+function CricketEditor({ m, edit, editSD, matchSD, setField, setSD, handleScoreUpdate, scoreMsg }) {
+  return (
+    <>
+      <div className={styles.scoreUpdateLabel}>Update Cricket Score</div>
+      <div className={styles.editorRow}>
+        <span className={styles.editorRowLabel}>Innings:</span>
+        <select className={styles.periodSelect}
+          value={editSD.innings ?? (matchSD.innings || '1st Innings')}
+          onChange={e => setSD('innings', e.target.value)}>
+          {CRICKET_INNINGS.map(i => <option key={i}>{i}</option>)}
+        </select>
+      </div>
+      <div className={styles.editorRow}>
+        <span className={styles.editorRowLabel}>🏏 Batting:</span>
+        <select className={styles.periodSelect}
+          value={editSD.battingTeam ?? (matchSD.battingTeam || 'home')}
+          onChange={e => setSD('battingTeam', e.target.value)}>
+          <option value='home'>{m.homeTeam?.name}</option>
+          <option value='away'>{m.awayTeam?.name}</option>
+        </select>
+      </div>
+      {/* Home innings */}
+      <div className={styles.cricketEditorBlock}>
+        <span className={styles.cricketEditorTeam}>
+          <span className={styles.teamDot} style={{ background: m.homeTeam?.color }} />
+          {m.homeTeam?.name}
+        </span>
+        <div className={styles.cricketEditorInputs}>
+          <div className={styles.cricketEditorField}>
+            <label>Runs</label>
+            <input type='number' min={0}
+              value={edit.homeScore !== undefined ? edit.homeScore : m.homeScore}
+              onChange={e => setField('homeScore', e.target.value)} />
+          </div>
+          <span className={styles.cricketSlash}>/</span>
+          <div className={styles.cricketEditorField}>
+            <label>Wkts</label>
+            <input type='number' min={0} max={10}
+              value={editSD.homeWickets ?? (matchSD.homeWickets ?? 0)}
+              onChange={e => setSD('homeWickets', e.target.value)} />
+          </div>
+          <div className={styles.cricketEditorField}>
+            <label>Overs</label>
+            <input type='text' placeholder='45.2'
+              value={editSD.homeOvers ?? (matchSD.homeOvers || '')}
+              onChange={e => setSD('homeOvers', e.target.value)} />
+          </div>
+        </div>
+      </div>
+      {/* Away innings */}
+      <div className={styles.cricketEditorBlock}>
+        <span className={styles.cricketEditorTeam}>
+          <span className={styles.teamDot} style={{ background: m.awayTeam?.color }} />
+          {m.awayTeam?.name}
+        </span>
+        <div className={styles.cricketEditorInputs}>
+          <div className={styles.cricketEditorField}>
+            <label>Runs</label>
+            <input type='number' min={0}
+              value={edit.awayScore !== undefined ? edit.awayScore : m.awayScore}
+              onChange={e => setField('awayScore', e.target.value)} />
+          </div>
+          <span className={styles.cricketSlash}>/</span>
+          <div className={styles.cricketEditorField}>
+            <label>Wkts</label>
+            <input type='number' min={0} max={10}
+              value={editSD.awayWickets ?? (matchSD.awayWickets ?? 0)}
+              onChange={e => setSD('awayWickets', e.target.value)} />
+          </div>
+          <div className={styles.cricketEditorField}>
+            <label>Overs</label>
+            <input type='text' placeholder='38.4'
+              value={editSD.awayOvers ?? (matchSD.awayOvers || '')}
+              onChange={e => setSD('awayOvers', e.target.value)} />
+          </div>
+        </div>
+      </div>
+      <EditorBtns matchId={m._id} handleScoreUpdate={handleScoreUpdate} scoreMsg={scoreMsg} completeLabel='✅ Match Complete' />
+    </>
+  );
+}
+
+function BasketballEditor({ m, edit, editSD, matchSD, quarters, curPeriod, setField, setQuarter, handleScoreUpdate, scoreMsg }) {
+  const homeTotal = quarters.reduce((s, q) => s + (Number(q.home) || 0), 0);
+  const awayTotal = quarters.reduce((s, q) => s + (Number(q.away) || 0), 0);
+  return (
+    <>
+      <div className={styles.scoreUpdateLabel}>Update Basketball Score</div>
+      <div className={styles.editorRow}>
+        <span className={styles.editorRowLabel}>Period:</span>
+        <select className={styles.periodSelect}
+          value={curPeriod || 'Q1'}
+          onChange={e => setField('period', e.target.value)}>
+          {BASKETBALL_PERIODS.map(p => <option key={p}>{p}</option>)}
+        </select>
+      </div>
+      <div className={styles.quartersEditorGrid}>
+        {quarters.map((q, i) => (
+          <div key={i} className={styles.qtrEditorCell}>
+            <span className={styles.qtrEditorLabel}>Q{i + 1}</span>
+            <input type='number' min={0} className={styles.qtrEditorInput}
+              value={q.home}
+              onChange={e => setQuarter(i, 'home', e.target.value)} />
+            <span className={styles.qtrEditorSep}>–</span>
+            <input type='number' min={0} className={styles.qtrEditorInput}
+              value={q.away}
+              onChange={e => setQuarter(i, 'away', e.target.value)} />
+          </div>
+        ))}
+      </div>
+      <div className={styles.autoCalcRow}>
+        Total (auto-calculated): <strong>{homeTotal}</strong> — <strong>{awayTotal}</strong>
+      </div>
+      <EditorBtns matchId={m._id} handleScoreUpdate={handleScoreUpdate} scoreMsg={scoreMsg} completeLabel='✅ Final Buzzer' />
+    </>
+  );
+}
+
+function SetsEditor({ m, sets, setSet, addSet, handleScoreUpdate, scoreMsg }) {
+  const homeWins = sets.filter(s => Number(s.home) > Number(s.away)).length;
+  const awayWins = sets.filter(s => Number(s.away) > Number(s.home)).length;
+  return (
+    <>
+      <div className={styles.scoreUpdateLabel}>Update Sets Score</div>
+      {sets.map((s, i) => {
+        const hw = Number(s.home) > Number(s.away);
+        const aw = Number(s.away) > Number(s.home);
+        return (
+          <div key={i} className={styles.setEditorRow}>
+            <span className={styles.setEditorLabel}>Set {i + 1}</span>
+            <input type='number' min={0} className={styles.setEditorInput}
+              value={s.home} onChange={e => setSet(i, 'home', e.target.value)} />
+            <span className={styles.setDash}>–</span>
+            <input type='number' min={0} className={styles.setEditorInput}
+              value={s.away} onChange={e => setSet(i, 'away', e.target.value)} />
+            {hw && <span className={styles.setWinHint}>← {m.homeTeam?.name}</span>}
+            {aw && <span className={styles.setWinHint}>{m.awayTeam?.name} →</span>}
+          </div>
+        );
+      })}
+      <button className={styles.addSetBtn} onClick={addSet}>＋ Add Set</button>
+      <div className={styles.autoCalcRow}>
+        Sets won: <strong>{m.homeTeam?.name} {homeWins}</strong> — <strong>{m.awayTeam?.name} {awayWins}</strong>
+      </div>
+      <EditorBtns matchId={m._id} handleScoreUpdate={handleScoreUpdate} scoreMsg={scoreMsg} completeLabel='✅ Match Over' />
+    </>
+  );
+}
+
+function GenericEditor({ m, edit, setField, handleScoreUpdate, scoreMsg }) {
+  return (
+    <>
+      <div className={styles.scoreUpdateLabel}>Update Score</div>
+      <div className={styles.scoreInputRow}>
+        <div className={styles.scoreInputGroup}>
+          <span className={styles.scoreInputTeam}>{m.homeTeam?.name}</span>
+          <input type='number' min={0}
+            value={edit.homeScore !== undefined ? edit.homeScore : m.homeScore}
+            onChange={e => setField('homeScore', e.target.value)} />
+        </div>
+        <span className={styles.scoreSep}>:</span>
+        <div className={styles.scoreInputGroup}>
+          <span className={styles.scoreInputTeam}>{m.awayTeam?.name}</span>
+          <input type='number' min={0}
+            value={edit.awayScore !== undefined ? edit.awayScore : m.awayScore}
+            onChange={e => setField('awayScore', e.target.value)} />
+        </div>
+      </div>
+      <EditorBtns matchId={m._id} handleScoreUpdate={handleScoreUpdate} scoreMsg={scoreMsg} />
+    </>
   );
 }

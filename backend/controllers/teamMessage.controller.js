@@ -5,7 +5,7 @@ import Notification from "../models/notification.model.js";
 
 export const getTeamMessages = async (req, res) => {
     const { teamId } = req.params;
-    const { token } = req.query;
+    const token = req.headers["x-auth-token"] || req.query.token || req.body?.token;
 
     try {
         const user = await User.findOne({ token });
@@ -34,7 +34,8 @@ export const getTeamMessages = async (req, res) => {
 
 export const sendTeamMessage = async (req, res) => {
     const { teamId } = req.params;
-    const { token, message } = req.body;
+    const token = req.headers["x-auth-token"] || req.body?.token || req.query.token;
+    const { message } = req.body;
 
     try {
         if (!message || !message.trim()) {
