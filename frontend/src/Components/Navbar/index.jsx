@@ -180,7 +180,7 @@ export default function NavbarComponent() {
                           <div className={styles.notificationContentBody}>
                             <p>{noti.message}</p>
                             <span>{new Date(noti.createdAt).toLocaleDateString()}</span>
-                            {noti.type === 'team_invite' && !noti.isRead && (
+                            {noti.type === 'team_invite' && !noti.isRead && !noti.message.toLowerCase().includes("accepted") && (
                               <div className={styles.inviteActions}>
                                 <button 
                                   className={styles.acceptInviteBtn}
@@ -271,7 +271,7 @@ export default function NavbarComponent() {
                                 </button>
                               </div>
                             )}
-                            {noti.type === 'connection_request' && !noti.isRead && (
+                            {noti.type === 'connection_request' && !noti.isRead && !noti.message.toLowerCase().includes("accepted") && (
                               <div className={styles.inviteActions}>
                                 <button 
                                   className={styles.acceptInviteBtn}
