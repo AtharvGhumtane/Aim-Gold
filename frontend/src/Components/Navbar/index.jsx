@@ -152,6 +152,7 @@ export default function NavbarComponent() {
                           <i className={
                             noti.type === 'connection_request' ? 'fa-solid fa-user-plus' :
                             noti.type === 'team_invite' ? 'fa-solid fa-users-gear' :
+                            noti.type === 'team_join_request' ? 'fa-solid fa-user-clock' :
                             'fa-solid fa-comment'
                           }></i>
                           <div className={styles.notificationContentBody}>
@@ -198,6 +199,53 @@ export default function NavbarComponent() {
                                   }}
                                 >
                                   Decline
+                                </button>
+                              </div>
+                            )}
+                            {noti.type === 'team_join_request' && !noti.isRead && (
+                              <div className={styles.inviteActions}>
+                                <button 
+                                  className={styles.acceptInviteBtn}
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      const token = localStorage.getItem("token");
+                                      await clientServer.post('/teams/accept_join', {
+                                        token,
+                                        teamId: noti.relatedId,
+                                        notificationId: noti._id,
+                                        requesterId: noti.senderId?._id || noti.senderId
+                                      });
+                                      fetchNotifications();
+                                      if (router.pathname === '/teams') {
+                                        router.replace(router.asPath);
+                                      }
+                                    } catch (err) {
+                                      console.error("Failed to accept join request:", err);
+                                    }
+                                  }}
+                                >
+                                  ✓ Approve
+                                </button>
+                                <button 
+                                  className={styles.declineInviteBtn}
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      const token = localStorage.getItem("token");
+                                      await clientServer.post('/teams/reject_join', {
+                                        token,
+                                        teamId: noti.relatedId,
+                                        notificationId: noti._id,
+                                        requesterId: noti.senderId?._id || noti.senderId
+                                      });
+                                      fetchNotifications();
+                                    } catch (err) {
+                                      console.error("Failed to reject join request:", err);
+                                    }
+                                  }}
+                                >
+                                  ✗ Decline
                                 </button>
                               </div>
                             )}

@@ -469,7 +469,7 @@ export default function TeamsPage() {
                             {isFull ? (
                               <>Full Squad</>
                             ) : (
-                              <><i className="fa-solid fa-plus-circle"></i> Join Squad</>
+                              <><i className="fa-solid fa-paper-plane"></i> Request to Join</>
                             )}
                           </button>
                         )}

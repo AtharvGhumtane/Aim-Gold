@@ -1,4 +1,4 @@
-import { BASE_URL, clientServer } from '@/config';
+import { BASE_URL, clientServer, serverClient } from '@/config';
 import DashboardLayout from '@/layout/DashboardLayout';
 import UserLayout from '@/layout/UserLayout';
 import { useSearchParams } from 'next/navigation';
@@ -16,6 +16,8 @@ export default function ViewProfilePage({userProfile}) {
   const dispatch = useDispatch();
 
   const [userPosts, setUserPosts] = useState([]);
+  const [userTeams, setUserTeams] = useState([]);
+  const [activeTab, setActiveTab] = useState("posts"); // "posts" | "teams"
   const [connectionStatus, setConnectionStatus] = useState({
     isConnected: false,
     isPending: false,
@@ -94,6 +96,16 @@ export default function ViewProfilePage({userProfile}) {
     }
   };
 
+  const fetchUserTeams = async () => {
+    try {
+      if (!userProfile?.userId?._id) return;
+      const res = await clientServer.get(`/teams/user/${userProfile.userId._id}`);
+      setUserTeams(res.data.teams || []);
+    } catch (error) {
+      console.error("Failed to fetch user teams:", error);
+    }
+  };
+
   useEffect(() => {
     if (connectionStatus.isConnected && userProfile?.userId?._id) {
       fetchUserConnections();
@@ -102,6 +114,9 @@ export default function ViewProfilePage({userProfile}) {
   
   useEffect(() => {
     getUsersPost();
+    if (userProfile?.userId?._id) {
+      fetchUserTeams();
+    }
   }, [])
 
   const handleConnect = async () => {
@@ -153,6 +168,17 @@ export default function ViewProfilePage({userProfile}) {
       return styles.connectedButton;
     }
     return styles.connectBtn;
+  };
+
+  const getSportIcon = (sport) => {
+    switch (sport) {
+      case 'Football': return 'fa-futbol';
+      case 'Basketball': return 'fa-basketball-ball';
+      case 'Tennis': return 'fa-tennis-ball';
+      case 'Cricket': return 'fa-baseball';
+      case 'Fitness': return 'fa-dumbbell';
+      default: return 'fa-users';
+    }
   };
 
   return (
@@ -238,6 +264,22 @@ export default function ViewProfilePage({userProfile}) {
                       </div>
                     )}
 
+                    {/* Stats Bar */}
+                    <div className={styles.statsBar}>
+                      <div className={styles.statItem}>
+                        <strong>{userPosts.length}</strong>
+                        <span>Posts</span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <strong>{userConnections.length}</strong>
+                        <span>Connections</span>
+                      </div>
+                      <div className={styles.statItem}>
+                        <strong>{userTeams.length}</strong>
+                        <span>Teams</span>
+                      </div>
+                    </div>
+
                     {/* Connections/Followers Section */}
                     {connectionStatus.isConnected && (
                       <div className={styles.connectionsSection}>
@@ -272,47 +314,87 @@ export default function ViewProfilePage({userProfile}) {
                       </div>
                     )}
                   </div>
-                  
-                  {/* Right Side - Recent Activity */}
-                  <div className={styles.activitySection}>
-                    <h3>Recent Activity</h3>
+                </div>
+
+                {/* Tab Navigation for Posts & Teams */}
+                <div className={styles.profileTabs}>
+                  <button 
+                    className={`${styles.tabBtn} ${activeTab === 'posts' ? styles.activeTab : ''}`}
+                    onClick={() => setActiveTab('posts')}
+                  >
+                    <i className="fa-solid fa-grid-2"></i> Posts
+                  </button>
+                  <button 
+                    className={`${styles.tabBtn} ${activeTab === 'teams' ? styles.activeTab : ''}`}
+                    onClick={() => setActiveTab('teams')}
+                  >
+                    <i className="fa-solid fa-shield-halved"></i> Teams
+                  </button>
+                </div>
+
+                {/* Posts Grid (Instagram-style) */}
+                {activeTab === 'posts' && (
+                  <div className={styles.postsGridSection}>
                     {userPosts && userPosts.length > 0 ? (
-                      userPosts.slice(0, 3).map((post) => (
-                        <div key={post._id} className={styles.postCard}>
-                          <div className={styles.card}>
-                            <div className={styles.card__profileContainer}>
-                              {post.media && post.media !== "" ? (
-                                <img 
-                                  src={`${BASE_URL}/uploads/${post.media}`} 
-                                  alt={`Post by ${post.userId.username}`} 
-                                />
-                              ) : (
-                                <div style={{
-                                  width: "100%", 
-                                  height: "100%", 
-                                  background: "linear-gradient(135deg, #667eea, #764ba2)",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  color: "white",
-                                  fontSize: "1.2rem"
-                                }}>
-                                  📝
-                                </div>
-                              )}
+                      <div className={styles.postsGrid}>
+                        {userPosts.map((post) => (
+                          <div key={post._id} className={styles.postGridItem}>
+                            {post.media && post.media !== "" ? (
+                              <img 
+                                src={`${BASE_URL}/uploads/${post.media}`} 
+                                alt={`Post by ${post.userId.username}`} 
+                              />
+                            ) : (
+                              <div className={styles.textPostCard}>
+                                <p>{post.body}</p>
+                              </div>
+                            )}
+                            <div className={styles.postGridOverlay}>
+                              <span><i className="fa-solid fa-heart"></i> {post.likes?.length || 0}</span>
+                              <span><i className="fa-solid fa-comment"></i> {post.comments?.length || 0}</span>
                             </div>
-                            <p>{post.body}</p>
                           </div>
-                        </div>
-                      ))
+                        ))}
+                      </div>
                     ) : (
                       <div className={styles.emptyState}>
-                        <i className="fa-solid fa-newspaper"></i>
-                        <p>No recent posts</p>
+                        <i className="fa-solid fa-camera"></i>
+                        <p>No posts yet</p>
                       </div>
                     )}
                   </div>
-                </div>
+                )}
+
+                {/* Teams Section */}
+                {activeTab === 'teams' && (
+                  <div className={styles.teamsSection}>
+                    {userTeams && userTeams.length > 0 ? (
+                      <div className={styles.teamsGrid}>
+                        {userTeams.map((team) => (
+                          <div key={team._id} className={styles.teamProfileCard}>
+                            <div className={styles.teamProfileHeader}>
+                              <i className={`fa-solid ${getSportIcon(team.sport)}`}></i>
+                              <span className={styles.teamSportLabel}>{team.sport}</span>
+                            </div>
+                            <h4>{team.name}</h4>
+                            <p className={styles.teamDescription}>{team.description}</p>
+                            <div className={styles.teamMeta}>
+                              <span>👥 {team.members?.length || 0} members</span>
+                              {team.creatorId?._id === userProfile.userId._id && (
+                                <span className={styles.ownerTag}>Owner</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={styles.emptyState}>
+                        <i className="fa-solid fa-shield-halved"></i>
+                        <p>Not a member of any team yet</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div> 
        </DashboardLayout>
@@ -322,7 +404,7 @@ export default function ViewProfilePage({userProfile}) {
 
 export async function getServerSideProps(context) {
   try {
-    const res = await clientServer.get(`/user/get_profile_based_on_username`, {
+    const res = await serverClient.get(`/user/get_profile_based_on_username`, {
       params: {
         username: context.params.username
       }

@@ -50,6 +50,7 @@ export const createTeam = async (req, res) => {
     }
 };
 
+// ── CHANGED: joinTeam now sends a request notification to the team owner ──
 export const joinTeam = async (req, res) => {
     const { token, teamId } = req.body;
 
@@ -68,16 +69,121 @@ export const joinTeam = async (req, res) => {
             return res.status(400).json({ message: "This team is already at full capacity" });
         }
 
-        team.members.push(user._id);
-        await team.save();
+        // Check if a pending join request already exists
+        const existingRequest = await Notification.findOne({
+            userId: team.creatorId,
+            senderId: user._id,
+            type: "team_join_request",
+            relatedId: team._id,
+            isRead: false
+        });
 
-        const populatedTeam = await Team.findById(team._id)
-            .populate('creatorId', 'name username email profilePicture')
-            .populate('members', 'name username email profilePicture');
+        if (existingRequest) {
+            return res.status(400).json({ message: "Your join request is already pending approval" });
+        }
 
-        return res.json({ message: "Joined team successfully", team: populatedTeam });
+        // Send notification to team owner instead of directly adding
+        const joinNotification = new Notification({
+            userId: team.creatorId,     // goes to the team owner
+            senderId: user._id,         // the user who wants to join
+            type: "team_join_request",
+            relatedId: team._id,
+            message: `${user.name} wants to join your team "${team.name}".`
+        });
+
+        await joinNotification.save();
+
+        return res.json({ message: "Join request sent to team owner. Waiting for approval." });
     } catch (error) {
         console.error("Join team error:", error);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// ── NEW: Owner accepts a join request ──
+export const acceptJoinRequest = async (req, res) => {
+    const { token, teamId, notificationId, requesterId } = req.body;
+
+    try {
+        const owner = await User.findOne({ token });
+        if (!owner) return res.status(404).json({ message: "User not found" });
+
+        const team = await Team.findById(teamId);
+        if (!team) return res.status(404).json({ message: "Team not found" });
+
+        if (team.creatorId.toString() !== owner._id.toString()) {
+            return res.status(403).json({ message: "Only the team owner can accept join requests" });
+        }
+
+        const requester = await User.findById(requesterId);
+        if (!requester) return res.status(404).json({ message: "Requester user not found" });
+
+        if (team.members.includes(requester._id)) {
+            await Notification.updateOne({ _id: notificationId }, { $set: { isRead: true } });
+            return res.status(400).json({ message: "User is already a member of this team" });
+        }
+
+        if (team.members.length >= team.maxSize) {
+            return res.status(400).json({ message: "Team is at full capacity" });
+        }
+
+        team.members.push(requester._id);
+        await team.save();
+
+        // Mark the join request notification as read
+        await Notification.updateOne({ _id: notificationId }, { $set: { isRead: true } });
+
+        // Notify the requester that they have been accepted
+        const acceptNotification = new Notification({
+            userId: requester._id,
+            senderId: owner._id,
+            type: "team_invite",
+            relatedId: team._id,
+            message: `Your request to join "${team.name}" has been accepted! You are now a member.`
+        });
+        await acceptNotification.save();
+
+        return res.json({ message: `${requester.name} has been added to the team` });
+    } catch (error) {
+        console.error("Accept join request error:", error);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// ── NEW: Owner rejects a join request ──
+export const rejectJoinRequest = async (req, res) => {
+    const { token, teamId, notificationId, requesterId } = req.body;
+
+    try {
+        const owner = await User.findOne({ token });
+        if (!owner) return res.status(404).json({ message: "User not found" });
+
+        const team = await Team.findById(teamId);
+        if (!team) return res.status(404).json({ message: "Team not found" });
+
+        if (team.creatorId.toString() !== owner._id.toString()) {
+            return res.status(403).json({ message: "Only the team owner can reject join requests" });
+        }
+
+        // Mark the join request notification as read (dismissed)
+        await Notification.updateOne({ _id: notificationId }, { $set: { isRead: true } });
+
+        // Optionally notify the requester
+        const requester = await User.findById(requesterId);
+        if (requester) {
+            const rejectNotification = new Notification({
+                userId: requester._id,
+                senderId: owner._id,
+                type: "comment", // reuse generic type for info
+                relatedId: team._id,
+                message: `Your request to join "${team.name}" has been declined.`
+            });
+            await rejectNotification.save();
+        }
+
+        return res.json({ message: "Join request has been declined" });
+    } catch (error) {
+        console.error("Reject join request error:", error);
         return res.status(500).json({ message: error.message });
     }
 };
@@ -170,7 +276,7 @@ export const inviteToTeam = async (req, res) => {
             senderId: user._id,
             type: "team_invite",
             relatedId: team._id,
-            message: `${user.name} invited you to join team ${team.name}.`
+            message: `${user.name} invited you to join team "${team.name}".`
         });
 
         await inviteNotification.save();
@@ -221,6 +327,23 @@ export const acceptTeamInvite = async (req, res) => {
         return res.json({ message: "Joined team successfully via invitation" });
     } catch (error) {
         console.error("Accept team invite error:", error);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// ── NEW: Get all teams a specific user is a member of ──
+export const getTeamsByUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        if (!userId) return res.status(400).json({ message: "User ID is required" });
+
+        const teams = await Team.find({ members: userId })
+            .populate('creatorId', 'name username email profilePicture')
+            .populate('members', 'name username email profilePicture');
+
+        return res.json({ teams });
+    } catch (error) {
+        console.error("Get teams by user error:", error);
         return res.status(500).json({ message: error.message });
     }
 };
