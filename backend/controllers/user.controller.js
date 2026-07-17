@@ -12,6 +12,7 @@ import Comment from "../models/comments.model.js";
 import mongoose from "mongoose"; 
 import { fileURLToPath } from "url";
 import Notification from "../models/notification.model.js";
+import Team from "../models/teams.model.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -519,6 +520,98 @@ export const getUserConnections = async (req, res) => {
         return res.json({ connections: formattedConnections });
     } catch (error) {
         console.error("Get user connections error:", error);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+export const getTrendingAthletes = async (req, res) => {
+    try {
+        // Fetch all connection requests and accepted connections
+        const allConnections = await ConnectionRequest.find({});
+
+        // Calculate count for each user
+        const userStats = {};
+
+        allConnections.forEach(conn => {
+            const u1 = conn.userId?.toString();
+            const u2 = conn.connectionId?.toString();
+
+            if (u1) {
+                if (!userStats[u1]) userStats[u1] = 0;
+                userStats[u1]++;
+            }
+            if (u2) {
+                if (!userStats[u2]) userStats[u2] = 0;
+                userStats[u2]++;
+            }
+        });
+
+        // Fetch all profiles and populate user details
+        const profiles = await Profile.find().populate('userId', 'name email username profilePicture');
+
+        // Add sorting score and filter out invalid user data
+        const sortedProfiles = profiles
+            .filter(p => p.userId)
+            .map(p => {
+                const userIdStr = p.userId._id.toString();
+                const score = userStats[userIdStr] || 0;
+                return { profile: p, score };
+            })
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 5)
+            .map(item => item.profile);
+
+        return res.json({ trending: sortedProfiles });
+    } catch (error) {
+        console.error("Get trending athletes error:", error);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+export const getUserStats = async (req, res) => {
+    const { token } = req.query;
+
+    try {
+        const user = await User.findOne({ token });
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        // 1. Total Connections (Accepted connections count)
+        const connectionsCount = await ConnectionRequest.countDocuments({
+            $or: [
+                { userId: user._id, status_accepted: true },
+                { connectionId: user._id, status_accepted: true }
+            ]
+        });
+
+        // 2. Teams Joined (Joined teams count)
+        const teamsCount = await Team.countDocuments({
+            members: user._id
+        });
+
+        // 3. Total Posts Created (Posts count)
+        const postsCount = await Post.countDocuments({
+            userId: user._id
+        });
+
+        // 4. Total Likes Received (Sum of likes on posts you've created)
+        const userPosts = await Post.find({ userId: user._id });
+        let totalLikes = 0;
+        userPosts.forEach(post => {
+            if (Array.isArray(post.likes)) {
+                totalLikes += post.likes.length;
+            }
+        });
+
+        return res.json({
+            stats: {
+                connections: connectionsCount,
+                teams: teamsCount,
+                posts: postsCount,
+                likes: totalLikes
+            }
+        });
+    } catch (error) {
+        console.error("Get user stats error:", error);
         return res.status(500).json({ message: error.message });
     }
 };

@@ -38,6 +38,7 @@ export default function Dashboard() {
     await dispatch(createPost({ file: fileContent, body: postContent }));
     setPostContent("");
     setFileContent(null);
+    dispatch(getAllPosts());
   };
 
   const handleDelete = async (postId) => {

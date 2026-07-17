@@ -19,10 +19,15 @@ export default function Discoverpage() {
     }
   }, []);
 
-  const filteredUsers = authState.all_users?.filter(user =>
-    user.userId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.userId?.username?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = authState.all_users?.filter(user => {
+    const isSelf = user.userId?._id === authState.user?.userId?._id;
+    if (isSelf) return false;
+
+    return (
+      user.userId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.userId?.username?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   return (
     <UserLayout>

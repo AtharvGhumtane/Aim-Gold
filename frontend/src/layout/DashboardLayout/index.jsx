@@ -1,15 +1,47 @@
-import React from 'react'
-import { useEffect } from 'react';
-import styles from "./index.module.css"
-import { useRouter } from 'next/router'
-import { useDispatch } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import styles from "./index.module.css";
+import { useRouter } from 'next/router';
+import { useDispatch, useSelector } from 'react-redux';
 import { setTokenIsThere } from '../../config/redux/reducer/authReducer';
-import { useSelector } from 'react-redux';
+import { BASE_URL, clientServer } from '@/config';
 
 export default function DashboardLayout({children}) {
   const router = useRouter();
   const dispatch = useDispatch();  
   const authState = useSelector((state) => state.auth);
+
+  const [trendingAthletes, setTrendingAthletes] = useState([]);
+  const [userStats, setUserStats] = useState({
+    connections: 0,
+    teams: 0,
+    posts: 0,
+    likes: 0
+  });
+
+  const fetchTrendingAndStats = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      // 1. Fetch user stats
+      const statsRes = await clientServer.get(`/user/stats?token=${token}`);
+      setUserStats(statsRes.data.stats || { connections: 0, teams: 0, posts: 0, likes: 0 });
+
+      // 2. Fetch trending athletes
+      const trendingRes = await clientServer.get('/user/trending_athletes');
+      const allTrending = trendingRes.data.trending || [];
+      
+      // Filter out self from trending list
+      const selfUserId = authState.user?.userId?._id;
+      const filteredTrending = selfUserId 
+        ? allTrending.filter(p => p.userId?._id !== selfUserId)
+        : allTrending;
+      
+      setTrendingAthletes(filteredTrending);
+    } catch (err) {
+      console.error("DashboardLayout fetch stats/trending error:", err);
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -25,6 +57,12 @@ export default function DashboardLayout({children}) {
       router.push("/login");
     }
   }, [authState.isError, authState.loggedIn]);
+
+  useEffect(() => {
+    if (authState.user || authState.loggedIn) {
+      fetchTrendingAndStats();
+    }
+  }, [authState.user, authState.loggedIn]);
 
   return (
     <div className={styles.layoutWrapper}>
@@ -144,20 +182,36 @@ export default function DashboardLayout({children}) {
                   <h3>Trending Athletes</h3>
                 </div>
                 
-                {authState.all_profiles_fetched && authState.all_users.slice(0, 5).map((profile) => (
-                  <div key={profile._id} className={styles.extraContainer__profile}>
-                    <div className={styles.profileAvatar}>
-                      <i className="fa-solid fa-user"></i>
+                {trendingAthletes.length > 0 ? (
+                  trendingAthletes.map((profile) => (
+                    <div 
+                      key={profile._id} 
+                      className={styles.extraContainer__profile}
+                      onClick={() => router.push(`/view_profile/${profile.userId.username}`)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <div className={styles.profileAvatar}>
+                        <img 
+                          src={
+                            !profile.userId.profilePicture || profile.userId.profilePicture === 'default.jpg'
+                              ? `${BASE_URL}/uploads/default.jpg`
+                              : `${BASE_URL}/uploads/${profile.userId.profilePicture}`
+                          } 
+                          alt={profile.userId.name}
+                          style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+                        />
+                      </div>
+                      <div className={styles.profileInfo}>
+                        <p className={styles.profileName}>{profile.userId.name}</p>
+                        <span className={styles.profileSport}>@{profile.userId.username}</span>
+                      </div>
                     </div>
-                    <div className={styles.profileInfo}>
-                      <p className={styles.profileName}>{profile.userId.name}</p>
-                      <span className={styles.profileSport}>Football Player</span>
-                    </div>
-                    <button className={styles.followBtn}>
-                      <i className="fa-solid fa-plus"></i>
-                    </button>
+                  ))
+                ) : (
+                  <div className={styles.emptyNotifications} style={{ padding: "0.5rem 0", fontSize: "0.8rem" }}>
+                    No other athletes registered
                   </div>
-                ))}
+                )}
               </div>
 
               {/* Upcoming Events */}
@@ -210,11 +264,11 @@ export default function DashboardLayout({children}) {
                 
                 <div className={styles.statItem}>
                   <div className={styles.statIcon}>
-                    <i className="fa-solid fa-trophy"></i>
+                    <i className="fa-solid fa-user-friends"></i>
                   </div>
                   <div className={styles.statInfo}>
-                    <span className={styles.statNumber}>12</span>
-                    <span className={styles.statLabel}>Matches Won</span>
+                    <span className={styles.statNumber}>{userStats.connections}</span>
+                    <span className={styles.statLabel}>Connections</span>
                   </div>
                 </div>
 
@@ -223,18 +277,28 @@ export default function DashboardLayout({children}) {
                     <i className="fa-solid fa-users"></i>
                   </div>
                   <div className={styles.statInfo}>
-                    <span className={styles.statNumber}>156</span>
-                    <span className={styles.statLabel}>Connections</span>
+                    <span className={styles.statNumber}>{userStats.teams}</span>
+                    <span className={styles.statLabel}>Teams Joined</span>
                   </div>
                 </div>
 
                 <div className={styles.statItem}>
                   <div className={styles.statIcon}>
-                    <i className="fa-solid fa-calendar-check"></i>
+                    <i className="fa-solid fa-heart"></i>
                   </div>
                   <div className={styles.statInfo}>
-                    <span className={styles.statNumber}>8</span>
-                    <span className={styles.statLabel}>Events Joined</span>
+                    <span className={styles.statNumber}>{userStats.likes}</span>
+                    <span className={styles.statLabel}>Likes Received</span>
+                  </div>
+                </div>
+
+                <div className={styles.statItem}>
+                  <div className={styles.statIcon}>
+                    <i className="fa-solid fa-pen-nib"></i>
+                  </div>
+                  <div className={styles.statInfo}>
+                    <span className={styles.statNumber}>{userStats.posts}</span>
+                    <span className={styles.statLabel}>Posts Created</span>
                   </div>
                 </div>
               </div>

@@ -10,7 +10,9 @@ import {
     sendConnectionRequest,
     getNotifications,
     markNotificationsRead,
-    getUserConnections
+    getUserConnections,
+    getTrendingAthletes,
+    getUserStats
 } from '../controllers/user.controller.js';
 import { login } from '../controllers/user.controller.js';
 import multer from 'multer';
@@ -56,5 +58,7 @@ router.route('/user/get_profile_based_on_username').get(getUserProfileAndUserBas
 router.route('/user/notifications').get(getNotifications);
 router.route('/user/notifications/mark_read').post(markNotificationsRead);
 router.route('/user/get_user_connections').get(getUserConnections);
+router.route('/user/trending_athletes').get(getTrendingAthletes);
+router.route('/user/stats').get(getUserStats);
 
 export default router;
