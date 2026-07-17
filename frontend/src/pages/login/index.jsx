@@ -26,6 +26,12 @@ export default function LoginComponent(){
   }, [authState.loggedIn]);
 
   useEffect(() => {
+    if (authState.isSuccess) {
+        setUserLoginMethod(true);
+    }
+  }, [authState.isSuccess]);
+
+  useEffect(() => {
     if(localStorage.getItem("token")){
       router.push("/dashboard");
     }
