@@ -473,14 +473,16 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 0.5rem;
+    padding: 0.25rem;
   }
   
   .homeContainer {
     flex-direction: column;
-    border-radius: 12px;
+    border-radius: 0;
     height: auto;
-    min-height: calc(100vh - 1rem);
+    min-height: 100vh;
+    box-shadow: none;
+    backdrop-filter: none;
   }
   
   .homeContainer_leftBar,
@@ -490,19 +492,108 @@
     border: none !important;
   }
   
+  /* Morph sidebar to sticky bottom bar */
   .homeContainer_leftBar {
-    order: 3;
-    max-height: 300px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    z-index: 1000;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0 !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    max-height: 64px !important;
   }
   
+  .sidebarContent {
+    flex-direction: row !important;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    padding: 0 0.5rem !important;
+    gap: 0 !important;
+  }
+
+  .quickActions {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 0;
+  }
+
+  .quickActions h3,
+  .sportsCategories {
+    display: none !important;
+  }
+  
+  .sideBarOption {
+    flex-direction: column !important;
+    align-items: center;
+    justify-content: center;
+    gap: 2px !important;
+    padding: 6px 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    flex: 1;
+  }
+
+  .sideBarOption:hover,
+  .sideBarOption.active {
+    background: transparent !important;
+    transform: none !important;
+    border-color: transparent !important;
+  }
+  
+  .iconWrapper {
+    width: 26px !important;
+    height: 26px !important;
+    background: transparent !important;
+    color: #64748b;
+    font-size: 1.1rem !important;
+    margin: 0;
+  }
+
+  .sideBarOption.active .iconWrapper {
+    background: transparent !important;
+    color: #667eea !important;
+  }
+  
+  .optionContent {
+    align-items: center;
+    gap: 0;
+  }
+
+  .optionContent span {
+    font-size: 0.65rem !important;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+  }
+
+  .sideBarOption.active .optionContent span {
+    color: #667eea !important;
+  }
+
+  .optionContent small {
+    display: none !important;
+  }
+
   .homeContainer_feedContainer {
     order: 1;
-    min-height: 60vh;
+    min-height: calc(100vh - 120px);
+    padding-bottom: 72px !important; /* space for bottom nav */
   }
   
   .homeContainer_extraContainer {
     order: 2;
-    max-height: 400px;
+    margin-bottom: 72px; /* space for bottom nav */
   }
   
   .sidebarContent,
@@ -512,20 +603,6 @@
   }
   
   .feedContent {
-    padding: 1rem;
-  }
-  
-  .optionContent small {
-    display: none;
-  }
-  
-  .sportsList {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-  
-  .sportItem {
-    flex: 1;
-    min-width: 120px;
+    padding: 0.75rem;
   }
 }
