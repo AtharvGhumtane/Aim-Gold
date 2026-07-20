@@ -25,25 +25,33 @@ const convertUserDataTOPDF = async (userData) => {
 
     doc.pipe(stream);
 
-    if (userData.profilePicture) {
-        const imagePath = path.join(__dirname, "../uploads", userData.profilePicture);
+    if (userData?.userId?.profilePicture) {
+        const imagePath = path.join(__dirname, "../uploads", userData.userId.profilePicture);
         if (fs.existsSync(imagePath)) {
             doc.image(imagePath, { align: "center", width: 100 });
         } else {
             console.warn(`Profile picture not found at: ${imagePath}`);
         }
     }
-    doc.fontSize(14).text(`Name: ${userData.userId.name}`);
-    doc.fontSize(14).text(`Email: ${userData.userId.email}`);
-    doc.fontSize(14).text(`Username: ${userData.userId.username}`);
-    doc.fontSize(14).text(`Bio: ${userData.bio}`);
-    doc.fontSize(14).text(`Current Position: ${userData.currentPosition}`);
+    const name = userData?.userId?.name || "N/A";
+    const email = userData?.userId?.email || "N/A";
+    const username = userData?.userId?.username || "N/A";
+    const bio = userData?.bio || "";
+    const currentPost = userData?.currentPost || userData?.currentPosition || "";
+
+    doc.fontSize(14).text(`Name: ${name}`);
+    doc.fontSize(14).text(`Email: ${email}`);
+    doc.fontSize(14).text(`Username: ${username}`);
+    doc.fontSize(14).text(`Bio: ${bio}`);
+    doc.fontSize(14).text(`Current Position: ${currentPost}`);
     doc.fontSize(14).text("Past Work");
-    userData.pastWork.forEach((work) => {
-        doc.fontSize(14).text(`Company: ${work.company}`);
-        doc.fontSize(14).text(`Position: ${work.position}`);
-        doc.fontSize(14).text(`Duration: ${work.years}`);
-    });
+    if (Array.isArray(userData?.pastWork)) {
+        userData.pastWork.forEach((work) => {
+            doc.fontSize(14).text(`Company: ${work.company || ''}`);
+            doc.fontSize(14).text(`Position: ${work.position || ''}`);
+            doc.fontSize(14).text(`Duration: ${work.years || ''}`);
+        });
+    }
 
     doc.end();
 
@@ -133,6 +141,8 @@ export const uploadProfilePicture = async (req, res) => {
     const { token } = req.body;
 
     try{
+        if (!req.file) return res.status(400).json({ message: "No image file provided" });
+
         const user = await User.findOne({token: token});
 
         if(!user) return res.status(400).json({message: "User not found"});
@@ -238,15 +248,22 @@ export const getAllUserProfile = async (req, res) => {
 
 
 export const downloadProfile = async (req, res) => {
-    const user_id= req.query.id;
+    try {
+        const user_id = req.query.id;
+        if (!user_id) return res.status(400).json({ message: "User ID is required" });
 
-    const userProfile = await Profile.findOne({ userId: user_id })
-    .populate('userId', 'name email username profilePicture');
-    
-    let outputPath = await convertUserDataTOPDF(userProfile);
+        const userProfile = await Profile.findOne({ userId: user_id })
+            .populate('userId', 'name email username profilePicture');
+        
+        if (!userProfile) return res.status(404).json({ message: "Profile not found" });
 
-    return res.json({"message": outputPath});
+        let outputPath = await convertUserDataTOPDF(userProfile);
 
+        return res.json({"message": outputPath});
+    } catch (error) {
+        console.error("Download profile error:", error);
+        return res.status(500).json({ message: error.message });
+    }
 }
 
 export const sendConnectionRequest = async (req, res) => {
@@ -260,13 +277,19 @@ export const sendConnectionRequest = async (req, res) => {
 
         if(!connectionUser) return res.status(400).json({ message: "Connection user not found" });
 
+        if (user._id.toString() === connectionUser._id.toString()) {
+            return res.status(400).json({ message: "Cannot send connection request to yourself" });
+        }
+
         const existingRequest = await ConnectionRequest.findOne({
-            userId: user._id,
-            connectionId: connectionUser._id
+            $or: [
+                { userId: user._id, connectionId: connectionUser._id },
+                { userId: connectionUser._id, connectionId: user._id }
+            ]
         });
 
         if(existingRequest) {
-            return res.status(400).json({ message: "Connection request already sent" });
+            return res.status(400).json({ message: "Connection request already sent or active" });
         }
 
         const request = new ConnectionRequest({

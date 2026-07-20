@@ -3,10 +3,10 @@
 // Example: create an axios instance (customize as needed)
 const { default: axios} = require("axios")
 
-export const BASE_URL = "http://localhost:9000"
+export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:9000";
 
 export const clientServer = axios.create({
-  baseURL: "http://localhost:9000", // replace with your API base URL
+  baseURL: BASE_URL,
 });
 
 // Auto-inject x-auth-token header if token is in localStorage (client side)

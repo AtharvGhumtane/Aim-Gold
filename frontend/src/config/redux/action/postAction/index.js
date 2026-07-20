@@ -21,9 +21,9 @@ export const createPost = createAsyncThunk(
 
         try{
             const formData = new FormData();
-            formData.append('token',localStorage.getItem('token'))
-            formData.append('body',body)
-            formData.append('media',file)
+            formData.append('token', localStorage.getItem('token') || '');
+            if (body !== undefined && body !== null) formData.append('body', body);
+            if (file) formData.append('media', file);
 
             const response = await clientServer.post("/post",formData,{
                 headers:{

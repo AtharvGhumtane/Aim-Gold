@@ -39,12 +39,13 @@ app.use('/uploads', express.static(uploadsDir));
 
 const start = async () => {
     const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/aim-gold";
+    const PORT = process.env.PORT || 9000;
     console.log(`Connecting to MongoDB: ${mongoURI}`);
-    const connectDB = await mongoose.connect(mongoURI);
+    await mongoose.connect(mongoURI);
 
-    app.listen(9000,() => {
-        console.log("Server is running on port 9000")
-    })
-}
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+};
 
 start(); 

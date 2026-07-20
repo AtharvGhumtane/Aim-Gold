@@ -34,7 +34,9 @@ const storage = multer.diskStorage({
         cb(null, path.join(__dirname, '../uploads'));
     },
     filename: (req, file, cb) => {
-        cb(null,file.originalname)
+        const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        const ext = path.extname(file.originalname);
+        cb(null, `profile-${unique}${ext}`);
     }
 });
 
